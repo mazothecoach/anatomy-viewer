@@ -1,0 +1,3 @@
+# Drop your .glb anatomy model files here.
+# The viewer expects `myology.glb` by default — rename your downloaded
+# Z-Anatomy GLB to this name, or pass ?model=models/your-name.glb in the URL.

@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Anatomy Viewer — Mazothecoach</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface-2: #1c1c1c;
+    --border: #2a2a2a;
+    --text: #e8e8e8;
+    --text-dim: #9a9a9a;
+    --accent: #c6ff3d;
+    --accent-dim: #7a9e26;
+    --psl: #6ad1ff;
+    --warn: #ffb84d;
+    --danger: #ff5577;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; font-size: 14px; overflow: hidden; }
+  button, input { font-family: inherit; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  #app { display: grid; grid-template-columns: 280px 1fr 380px; grid-template-rows: 48px 1fr; height: 100vh; }
+  header { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  header h1 { font-size: 14px; margin: 0; color: var(--accent); letter-spacing: 0.6px; }
+  header .sub { color: var(--text-dim); font-size: 12px; }
+  header .spacer { flex: 1; }
+  header .status { font-size: 12px; color: var(--text-dim); }
+  header .status.ok { color: var(--accent); }
+  header .status.err { color: var(--danger); }
+
+  /* SIDEBAR */
+  aside.left { background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; padding: 12px; }
+  aside.left h3 { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.2px; margin: 14px 0 6px; }
+  aside.left h3:first-child { margin-top: 0; }
+  #search { width: 100%; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 7px 10px; border-radius: 5px; outline: none; font-size: 13px; }
+  #search:focus { border-color: var(--accent); }
+  .region-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .region-tabs button { background: var(--surface-2); color: var(--text-dim); border: 1px solid var(--border); padding: 3px 8px; border-radius: 999px; font-size: 11px; cursor: pointer; }
+  .region-tabs button.active { background: var(--accent); color: #000; border-color: var(--accent); }
+  .muscle-list { margin-top: 8px; }
+  .muscle-list .item {
+    padding: 7px 10px; border-radius: 4px; cursor: pointer; font-size: 13px;
+    border: 1px solid transparent; display: flex; justify-content: space-between; align-items: center;
+  }
+  .muscle-list .item:hover { background: var(--surface-2); }
+  .muscle-list .item.active { background: rgba(198, 255, 61, 0.1); border-color: var(--accent); color: var(--accent); }
+  .muscle-list .item.linked::after { content: "●"; color: var(--accent); font-size: 8px; margin-left: 6px; opacity: 0.7; }
+  .muscle-list .item.notlinked { color: var(--text-dim); }
+  .layers { margin-top: 8px; }
+  .layers label { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; color: var(--text-dim); cursor: pointer; }
+  .layers input[type="checkbox"] { accent-color: var(--accent); }
+
+  /* CANVAS */
+  main { position: relative; background: radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 70%); overflow: hidden; }
+  #canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+  #canvas:active { cursor: grabbing; }
+  #empty-state {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column;
+    text-align: center; padding: 40px; color: var(--text-dim); pointer-events: none;
+  }
+  #empty-state.hidden { display: none; }
+  #empty-state .box {
+    background: var(--surface); border: 2px dashed var(--border); padding: 32px 48px; border-radius: 12px;
+    pointer-events: auto;
+  }
+  #empty-state h2 { color: var(--accent); margin: 0 0 12px; font-size: 18px; }
+  #empty-state p { margin: 6px 0; font-size: 13px; max-width: 480px; }
+  #empty-state .btn-row { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    background: var(--accent); color: #000; border: none; padding: 9px 18px; border-radius: 5px;
+    font-weight: 600; cursor: pointer; font-size: 13px;
+  }
+  .btn:hover { background: #d4ff5c; }
+  .btn.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+  .btn.secondary:hover { background: #252525; }
+
+  #toast {
+    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: var(--surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px;
+    font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+  #toast.warn { border-color: var(--warn); color: var(--warn); }
+  #toast.err { border-color: var(--danger); color: var(--danger); }
+
+  #viewer-hud {
+    position: absolute; top: 12px; left: 12px; display: flex; gap: 6px; font-size: 11px;
+    color: var(--text-dim); background: rgba(20,20,20,0.7); padding: 6px 10px; border-radius: 4px;
+    backdrop-filter: blur(6px);
+  }
+  #viewer-controls {
+    position: absolute; top: 12px; right: 12px; display: flex; gap: 6px;
+  }
+  #viewer-controls button {
+    background: rgba(20,20,20,0.85); color: var(--text); border: 1px solid var(--border); padding: 6px 10px;
+    border-radius: 4px; cursor: pointer; font-size: 12px;
+  }
+  #viewer-controls button:hover { border-color: var(--accent); color: var(--accent); }
+
+  #progress {
+    position: absolute; bottom: 12px; left: 12px; right: 12px; background: var(--surface); border: 1px solid var(--border);
+    padding: 10px 14px; border-radius: 6px; font-size: 12px; display: none;
+  }
+  #progress.show { display: block; }
+  #progress .bar { height: 4px; background: var(--surface-2); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  #progress .bar > div { height: 100%; background: var(--accent); width: 0%; transition: width 0.2s; }
+
+  /* INFO PANEL */
+  aside.right { background: var(--surface); border-left: 1px solid var(--border); overflow-y: auto; padding: 16px; }
+  aside.right .empty { color: var(--text-dim); font-size: 13px; padding: 20px; text-align: center; }
+  .muscle-card h2 { margin: 0 0 4px; color: var(--accent); font-size: 18px; }
+  .muscle-card .mesh-name { font-size: 11px; color: var(--text-dim); font-family: ui-monospace, "SF Mono", Menlo, monospace; word-break: break-all; margin-bottom: 14px; }
+  .muscle-card .action-row { display: flex; gap: 6px; margin-bottom: 14px; }
+  .muscle-card .action-row button {
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--border); padding: 5px 10px;
+    border-radius: 4px; cursor: pointer; font-size: 11px; flex: 1;
+  }
+  .muscle-card .action-row button:hover { border-color: var(--accent); color: var(--accent); }
+  .muscle-card dl { margin: 0; }
+  .muscle-card dt { color: var(--accent-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 10px; font-weight: 600; }
+  .muscle-card dd { margin: 3px 0 0; font-size: 13px; line-height: 1.5; }
+  .strength-zones { display: grid; grid-template-columns: 1fr; gap: 6px; margin-top: 6px; }
+  .strength-zones .zone { background: var(--surface-2); border: 1px solid var(--border); padding: 8px 10px; border-radius: 4px; font-size: 12px; }
+  .strength-zones .zone strong { color: var(--accent); display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 3px; }
+  .psl-note {
+    margin-top: 14px; background: rgba(106, 209, 255, 0.08); border-left: 3px solid var(--psl);
+    padding: 10px 12px; font-size: 12px; line-height: 1.5; border-radius: 0 4px 4px 0;
+  }
+  .psl-note strong { color: var(--psl); }
+  .no-data-note {
+    margin-top: 14px; background: rgba(255, 184, 77, 0.08); border-left: 3px solid var(--warn);
+    padding: 10px 12px; font-size: 12px; border-radius: 0 4px 4px 0;
+  }
+  .no-data-note strong { color: var(--warn); }
+
+  @media (max-width: 1100px) {
+    #app { grid-template-columns: 240px 1fr 320px; }
+  }
+  @media (max-width: 900px) {
+    #app { grid-template-columns: 1fr; grid-template-rows: 48px auto 1fr auto; }
+    aside.left, aside.right { max-height: 200px; }
+  }
+
+  /* COMPACT MODE — for Notion / iframe embeds */
+  body.compact #app { grid-template-columns: 1fr 320px; grid-template-rows: 36px 1fr; }
+  body.compact aside.left { display: none; }
+  body.compact header h1 { font-size: 12px; }
+  body.compact header .sub { display: none; }
+  body.compact #viewer-hud { font-size: 10px; padding: 4px 8px; }
+  body.compact #viewer-controls button { padding: 4px 8px; font-size: 11px; }
+  body.compact aside.right { padding: 10px; }
+
+  /* MINIMAL MODE — pure 3D with info popup */
+  body.minimal #app { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+  body.minimal header { display: none; }
+  body.minimal aside.left { display: none; }
+  body.minimal aside.right {
+    position: absolute; top: 12px; right: 12px; width: 320px; max-height: calc(100vh - 24px);
+    border: 1px solid var(--border); border-radius: 8px; z-index: 5;
+    background: rgba(20,20,20,0.92); backdrop-filter: blur(10px);
+  }
+  body.minimal aside.right:empty, body.minimal aside.right:has(.empty) { display: none; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<header>
+  <h1>3D ANATOMY</h1>
+  <span class="sub">Interactive musculoskeletal viewer</span>
+  <span class="spacer"></span>
+  <span id="status" class="status">No model loaded</span>
+</header>
+
+<aside class="left">
+  <h3>Search</h3>
+  <input id="search" type="search" placeholder="Find muscle…" autocomplete="off" />
+
+  <h3>Region</h3>
+  <div class="region-tabs" id="region-tabs">
+    <button data-region="all" class="active">All</button>
+    <button data-region="shoulder">Shoulder</button>
+    <button data-region="arm">Arm</button>
+    <button data-region="core">Core</button>
+    <button data-region="hip">Hip</button>
+    <button data-region="thigh">Thigh</button>
+    <button data-region="leg">Leg</button>
+  </div>
+
+  <h3>Muscles in DB</h3>
+  <div class="muscle-list" id="muscle-list"></div>
+
+  <h3>Layers</h3>
+  <div class="layers" id="layers">
+    <label class="empty"><span style="color: var(--text-dim); font-size: 11px;">Load a model to see layers</span></label>
+  </div>
+</aside>
+
+<main>
+  <canvas id="canvas"></canvas>
+
+  <div id="viewer-hud">
+    <span>Drag = rotate · Right-drag = pan · Wheel = zoom · Click = select</span>
+  </div>
+
+  <div id="viewer-controls">
+    <button id="btn-reset">Reset view</button>
+    <button id="btn-fit">Fit</button>
+    <button id="btn-wire">Wireframe</button>
+    <button id="btn-load">Load model…</button>
+  </div>
+
+  <div id="empty-state">
+    <div class="box">
+      <h2>Drop a .glb anatomy model here</h2>
+      <p>Or click <strong>Load model</strong> in the top-right. Once loaded, click any muscle to see its data.</p>
+      <p style="color: var(--text); margin-top: 14px;"><strong>Recommended:</strong> <a href="https://sketchfab.com/Z-Anatomy/models" target="_blank">Z-Anatomy on Sketchfab</a> — free, CC BY-SA, separate meshes per muscle. Download <code>Myology</code> (muscles) and <code>Arthrology</code> (bones) as GLB.</p>
+      <p style="color: var(--text-dim); font-size: 12px;">See <code>README_3D_Setup.md</code> in this folder for step-by-step setup.</p>
+      <div class="btn-row">
+        <button class="btn" id="btn-load-empty">Load .glb file</button>
+        <button class="btn secondary" id="btn-try-default">Look for ./models/myology.glb</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="progress">
+    <span id="progress-text">Loading…</span>
+    <div class="bar"><div id="progress-bar"></div></div>
+  </div>
+
+  <div id="toast"></div>
+  <input type="file" id="file-input" accept=".glb,.gltf" style="display:none" />
+</main>
+
+<aside class="right">
+  <div id="info-panel">
+    <div class="empty">
+      <p>Select a muscle to see its origin, insertion, action, and strength curve.</p>
+      <p style="font-size: 11px; margin-top: 20px;">Tip: muscles with full data are marked with a dot in the sidebar list.</p>
+    </div>
+  </div>
+</aside>
+
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ============================================================================
+// URL PARAMETERS
+// ?model=URL    → auto-load model from URL (must be CORS-allowed)
+// ?compact=1    → hide left sidebar (good for Notion iframe)
+// ?minimal=1    → hide all UI except 3D + floating info card on click
+// ?bg=#hex      → background color override
+// ============================================================================
+const params = new URLSearchParams(window.location.search);
+const URL_MODEL = params.get('model');
+const URL_COMPACT = params.get('compact') === '1';
+const URL_MINIMAL = params.get('minimal') === '1';
+const URL_BG = params.get('bg');
+if (URL_COMPACT) document.body.classList.add('compact');
+if (URL_MINIMAL) document.body.classList.add('minimal');
+if (URL_BG) document.body.style.background = '#' + URL_BG.replace(/^#/, '');
+
+// ============================================================================
+// MUSCLE DATABASE
+// Aliases are matched against normalized mesh names (lowercase, no
+// "musculus"/"m " prefix, no left/right suffix, _/- treated as space).
+// ============================================================================
+const MUSCLE_DATA = {
+  "pec-major": {
+    name: "Pectoralis Major", region: "shoulder",
+    origin: "Clavicular head: medial half of anterior clavicle. Sternal head: anterior sternum + costal cartilages of ribs 1–6.",
+    insertion: "Lateral lip of bicipital groove of humerus.",
+    action: "Shoulder adduction, internal rotation, horizontal adduction. Clavicular fibers flex; sternal fibers extend from flexed.",
+    function: "Closes a chain in front of the body — pushing, pulling-to, carrying loads at the side.",
+    innervation: "Medial + lateral pectoral nerves (C5–T1).",
+    example: "Bench press, cable fly, dip.",
+    strengthCurve: {
+      short: "Cable crossover (low to high)",
+      mid: "Bench press, dip",
+      long: "Cable fly with deep stretch"
+    },
+    pslNote: "\"Incline = upper, decline = lower\" is too coarse. Check the client's sternal angle — the sternum's tilt already determines which fibers face vertically.",
+    aliases: ["pectoralis major", "pec major", "pectoralis"]
+  },
+  "pec-minor": {
+    name: "Pectoralis Minor", region: "shoulder",
+    origin: "Anterior surfaces of ribs 3–5.",
+    insertion: "Coracoid process of scapula.",
+    action: "Scapular protraction, depression, downward rotation, anterior tilt.",
+    function: "Accessory inspiratory when scapula fixed. Stabilizes scapula against rib cage from the front.",
+    innervation: "Medial pectoral nerve (C8–T1).",
+    example: "No good isolation. Released via lat work + thoracic extension when chronically short.",
+    strengthCurve: { short: "—", mid: "Trained indirectly via push patterns", long: "—" },
+    pslNote: "Chronic anterior scapular tilt → often a dominant pec minor. Restore upward rotation (serratus + lower trap) instead of stretching it.",
+    aliases: ["pectoralis minor", "pec minor"]
+  },
+  "lat": {
+    name: "Latissimus Dorsi", region: "shoulder",
+    origin: "Spinous processes T7–L5 via thoracolumbar fascia, posterior iliac crest, lower 3–4 ribs, inferior angle of scapula.",
+    insertion: "Intertubercular (bicipital) groove of humerus.",
+    action: "Shoulder extension, adduction, internal rotation. Pulls a flexed arm down and back.",
+    function: "Cross-stabilizer: links contralateral glute max via thoracolumbar fascia. Critical in gait, deadlift, RDL, row. \"Canary in the coal mine\" for shoulder mobility.",
+    innervation: "Thoracodorsal nerve (C6–C8).",
+    example: "Pull-up, lat pulldown, single-arm row, straight-arm pulldown.",
+    strengthCurve: {
+      short: "Straight-arm pulldown to hip",
+      mid: "Chest-supported row",
+      long: "Pull-up with scapular protraction at top, kneeling cable pullover"
+    },
+    pslNote: "For a true lengthened-position lat exercise you need scapular protraction at the top — putting the inferior angle into upward rotation maximally lengthens the muscle.",
+    aliases: ["latissimus dorsi", "latissimus", "lat dorsi"]
+  },
+  "trap": {
+    name: "Trapezius", region: "shoulder",
+    origin: "External occipital protuberance, nuchal ligament, spinous processes C7–T12.",
+    insertion: "Upper: lateral third of clavicle. Middle: acromion + scapular spine. Lower: medial scapular spine.",
+    action: "Upper: elevation + upward rotation. Middle: retraction. Lower: depression + upward rotation. Upper + lower together = upward rotation.",
+    function: "Positions the scapula for the demand. Upper trap suspends the shoulder girdle during gait/carrying.",
+    innervation: "Spinal accessory nerve (CN XI) + cervical plexus.",
+    example: "Upper: farmer carry, shrug. Middle: chest-supported row. Lower: prone Y raise, OHP.",
+    strengthCurve: {
+      short: "Prone Y raise (lower trap)",
+      mid: "Chest-supported row",
+      long: "Overhead carry, snatch-grip RDL (upper)"
+    },
+    pslNote: "\"Don't shrug\" mislabels function. Upper trap upwardly rotates the scapula for overhead — you want it firing. The fault is using upper trap to elevate without rotating.",
+    aliases: ["trapezius", "trapezius muscle", "upper trapezius", "middle trapezius", "lower trapezius"]
+  },
+  "rhomboids": {
+    name: "Rhomboids", region: "shoulder",
+    origin: "Minor: spinous processes C7–T1. Major: spinous processes T2–T5.",
+    insertion: "Medial border of scapula.",
+    action: "Retraction, elevation, downward rotation of scapula.",
+    function: "Functional antagonist of serratus anterior. Over-recruitment inhibits upward rotation.",
+    innervation: "Dorsal scapular nerve (C5).",
+    example: "Face pull, reverse fly with retraction emphasis.",
+    strengthCurve: { short: "Retracted reverse fly hold", mid: "Face pull", long: "Hanging scapular protraction" },
+    pslNote: "Cueing \"squeeze the shoulder blades together\" downwardly rotates the scapula — opposite of what overhead positions need.",
+    aliases: ["rhomboid major", "rhomboid minor", "rhomboideus major", "rhomboideus minor", "rhomboid"]
+  },
+  "serratus": {
+    name: "Serratus Anterior", region: "shoulder",
+    origin: "Lateral surfaces of ribs 1–9.",
+    insertion: "Anterior surface of medial border of scapula.",
+    action: "Protraction, upward rotation, posterior tilt of scapula. Keeps scapula flush to rib cage.",
+    function: "Single most important internal functional stabilizer of the scapulothoracic interface. Without it: winging, no clean overhead.",
+    innervation: "Long thoracic nerve (C5–C7).",
+    example: "Push-up plus, wall slide, landmine press, OHP with scapular reach.",
+    strengthCurve: {
+      short: "Push-up plus (full protraction)",
+      mid: "Landmine press",
+      long: "Overhead reach (arm at 180°)"
+    },
+    aliases: ["serratus anterior", "serratus"]
+  },
+  "deltoid": {
+    name: "Deltoid", region: "shoulder",
+    origin: "Anterior: lateral third of clavicle. Lateral: acromion. Posterior: spine of scapula.",
+    insertion: "Deltoid tuberosity of humerus.",
+    action: "Anterior: flexion, IR, horizontal adduction. Lateral: abduction past 15°. Posterior: extension, ER, horizontal abduction.",
+    function: "Primary mover of humerus once supraspinatus initiates abduction.",
+    innervation: "Axillary nerve (C5–C6).",
+    example: "OHP, lateral raise (DB or cable), reverse pec deck.",
+    strengthCurve: {
+      short: "DB lateral raise (top)",
+      mid: "Cable lateral raise from behind body",
+      long: "Incline DB lateral raise (arm hanging across body)"
+    },
+    pslNote: "\"Lead with the elbow\" on lateral raises: elbow stays the highest point so the line of pull stays on medial deltoid rather than transferring into supraspinatus or upper trap.",
+    aliases: ["deltoid", "deltoideus", "anterior deltoid", "lateral deltoid", "posterior deltoid", "middle deltoid"]
+  },
+  "supraspinatus": {
+    name: "Supraspinatus", region: "shoulder",
+    origin: "Supraspinous fossa of scapula.",
+    insertion: "Superior facet of greater tubercle of humerus.",
+    action: "Initiates shoulder abduction (first 15°). Assists external rotation.",
+    function: "Compresses humeral head into glenoid throughout abduction — centration, not power.",
+    innervation: "Suprascapular nerve (C5–C6).",
+    example: "Light full can raise (thumbs up, 30° forward of frontal plane).",
+    strengthCurve: { short: "Full can raise at side", mid: "Full can at scapular plane", long: "—" },
+    aliases: ["supraspinatus", "supra spinatus"]
+  },
+  "infraspinatus": {
+    name: "Infraspinatus", region: "shoulder",
+    origin: "Infraspinous fossa of scapula.",
+    insertion: "Middle facet of greater tubercle of humerus.",
+    action: "External rotation of shoulder. Assists horizontal abduction.",
+    function: "Posterior centrator of humeral head — prevents anterior translation during pressing.",
+    innervation: "Suprascapular nerve (C5–C6).",
+    example: "Side-lying DB ER, cable ER at elbow-by-side.",
+    strengthCurve: { short: "ER end-range hold", mid: "Cable ER mid-range", long: "Stretched IR start position" },
+    aliases: ["infraspinatus", "infra spinatus"]
+  },
+  "teres-minor": {
+    name: "Teres Minor", region: "shoulder",
+    origin: "Upper portion of lateral border of scapula.",
+    insertion: "Inferior facet of greater tubercle of humerus.",
+    action: "External rotation, adduction, slight extension of shoulder.",
+    function: "Posterior dynamic stabilizer with infraspinatus.",
+    innervation: "Axillary nerve (C5–C6).",
+    example: "Bent-over ER, face pull with ER.",
+    strengthCurve: { short: "—", mid: "Bent-over ER", long: "—" },
+    aliases: ["teres minor"]
+  },
+  "subscapularis": {
+    name: "Subscapularis", region: "shoulder",
+    origin: "Subscapular fossa (anterior surface of scapula).",
+    insertion: "Lesser tubercle of humerus.",
+    action: "Internal rotation, adduction.",
+    function: "Only anterior cuff member — prevents anterior humeral translation. Silent partner; weakness shows as overhead pain on the front.",
+    innervation: "Upper + lower subscapular nerves (C5–C7).",
+    example: "Cable IR at side, belly-press exercise.",
+    strengthCurve: { short: "—", mid: "Cable IR", long: "—" },
+    aliases: ["subscapularis", "sub scapularis"]
+  },
+  "teres-major": {
+    name: "Teres Major", region: "shoulder",
+    origin: "Inferior angle + lower lateral border of scapula.",
+    insertion: "Medial lip of bicipital groove of humerus.",
+    action: "Shoulder extension, adduction, internal rotation. Mirrors lat action but originates from scapula.",
+    function: "\"Lat's little helper\" — trained alongside lat in vertical pulls.",
+    innervation: "Lower subscapular nerve (C5–C7).",
+    example: "Pull-up, pulldown.",
+    strengthCurve: { short: "Straight-arm pulldown end", mid: "Lat pulldown", long: "Pull-up top with reach" },
+    aliases: ["teres major"]
+  },
+  "levator-scapulae": {
+    name: "Levator Scapulae", region: "shoulder",
+    origin: "Transverse processes of C1–C4.",
+    insertion: "Superior angle of scapula.",
+    action: "Elevation + downward rotation of scapula; lateral cervical flexion with scapula fixed.",
+    function: "Tonic neck stabilizer. Chronic activation = \"knot at the corner of the neck.\"",
+    innervation: "Dorsal scapular (C5) + cervical plexus (C3–C4).",
+    example: "Not trained directly; released by restoring lower trap + serratus.",
+    strengthCurve: { short: "—", mid: "—", long: "—" },
+    aliases: ["levator scapulae", "levator"]
+  },
+  "biceps": {
+    name: "Biceps Brachii", region: "arm",
+    origin: "Long head: supraglenoid tubercle of scapula. Short head: coracoid process.",
+    insertion: "Radial tuberosity + bicipital aponeurosis.",
+    action: "Elbow flexion, forearm supination, weak shoulder flexion. Biarticular.",
+    function: "Effective supinator. Length depends on shoulder position: arm behind body → long head stretched.",
+    innervation: "Musculocutaneous nerve (C5–C6).",
+    example: "DB curl, incline DB curl, preacher curl, high cable curl.",
+    strengthCurve: {
+      short: "High-cable curl, spider curl top",
+      mid: "Standing barbell curl, preacher curl",
+      long: "Incline DB curl (shoulder extended, biceps fully lengthened)"
+    },
+    pslNote: "Slow eccentric on a high-cable curl wastes time in a zone the exercise can't load — it loads the shortened position only. Match tempo to where the exercise has tension.",
+    aliases: ["biceps brachii", "biceps", "biceps brachialis"]
+  },
+  "brachialis": {
+    name: "Brachialis", region: "arm",
+    origin: "Distal half of anterior humerus.",
+    insertion: "Tuberosity of ulna + coronoid process.",
+    action: "Pure elbow flexion (no shoulder, no supination role).",
+    function: "Workhorse elbow flexor — strongest contributor regardless of forearm position.",
+    innervation: "Musculocutaneous nerve (C5–C6); some radial.",
+    example: "Hammer curl, reverse curl, neutral-grip cable curl.",
+    strengthCurve: { short: "Hammer curl top", mid: "Hammer curl mid", long: "Hammer curl bottom with arm extended" },
+    aliases: ["brachialis"]
+  },
+  "coracobrachialis": {
+    name: "Coracobrachialis", region: "arm",
+    origin: "Coracoid process of scapula.",
+    insertion: "Medial mid-shaft of humerus.",
+    action: "Shoulder flexion + adduction.",
+    function: "Anterior shoulder stabilizer; minor flexion below 90°.",
+    innervation: "Musculocutaneous nerve (C5–C7).",
+    example: "Trained incidentally in front raises, curls from shoulder-extended start.",
+    strengthCurve: { short: "—", mid: "—", long: "—" },
+    aliases: ["coracobrachialis"]
+  },
+  "triceps": {
+    name: "Triceps Brachii", region: "arm",
+    origin: "Long: infraglenoid tubercle of scapula. Lateral: posterior humerus above radial groove. Medial: posterior humerus below radial groove.",
+    insertion: "Olecranon process of ulna via common triceps tendon.",
+    action: "Elbow extension. Long head also extends + adducts shoulder.",
+    function: "Counterforce to elbow flexion. Long head is the only triceps that crosses shoulder — biased by overhead positions.",
+    innervation: "Radial nerve (C6–C8).",
+    example: "Close-grip bench, dip, overhead cable extension, pushdown, skullcrusher.",
+    strengthCurve: {
+      short: "Cable pushdown, close-grip lockout",
+      mid: "Skullcrusher",
+      long: "Overhead cable extension, KZ press"
+    },
+    pslNote: "The DB kickback loses challenge precisely where the triceps shortens (gravity goes vertical, forearm horizontal — moment arm collapses). Use a cable for shortened-position work.",
+    aliases: ["triceps brachii", "triceps", "triceps brachii long", "triceps brachii lateral", "triceps brachii medial"]
+  },
+  "brachioradialis": {
+    name: "Brachioradialis", region: "arm",
+    origin: "Lateral supracondylar ridge of humerus.",
+    insertion: "Distal radius near styloid process.",
+    action: "Elbow flexion (strongest with neutral forearm). Returns forearm to neutral from either extreme.",
+    function: "Decelerator of forearm motion in rapid tasks.",
+    innervation: "Radial nerve (C5–C6).",
+    example: "Hammer curl, reverse curl, rope hammer cable curl.",
+    strengthCurve: { short: "Hammer curl top", mid: "Reverse curl mid", long: "Reverse curl bottom" },
+    aliases: ["brachioradialis"]
+  },
+  "forearm-flexors": {
+    name: "Wrist & Finger Flexors", region: "arm",
+    origin: "Medial epicondyle of humerus (common flexor tendon) + anterior radius/ulna.",
+    insertion: "Bases of metacarpals (wrist) + phalanges (fingers).",
+    action: "Wrist flexion, finger flexion, radial/ulnar deviation contributions. Grip.",
+    function: "Grip = gateway to every loaded pull. Forearm endurance caps deadlift/pull-up volume long before back does.",
+    innervation: "Median nerve (most); FCU + ulnar half FDP via ulnar.",
+    example: "Wrist curl, dead hang, farmer carry, fat-grip work.",
+    strengthCurve: { short: "Wrist curl top", mid: "Mid", long: "Dead hang, plate pinch" },
+    aliases: ["flexor carpi radialis", "flexor carpi ulnaris", "palmaris longus", "flexor digitorum superficialis", "flexor digitorum profundus", "flexor pollicis longus", "wrist flexors", "forearm flexors"]
+  },
+  "forearm-extensors": {
+    name: "Wrist & Finger Extensors", region: "arm",
+    origin: "Lateral epicondyle of humerus (common extensor tendon) + posterior radius/ulna.",
+    insertion: "Bases of metacarpals + phalanges.",
+    action: "Wrist + finger extension, radial/ulnar deviation contributions.",
+    function: "Co-contractor in grip — stabilizes wrist while flexors grip. Chronic overload = lateral epicondylitis (\"tennis elbow\").",
+    innervation: "Radial nerve (C6–C8).",
+    example: "Reverse wrist curl, finger band extension, rice bucket.",
+    strengthCurve: { short: "Reverse wrist curl top", mid: "Mid", long: "—" },
+    aliases: ["extensor carpi radialis longus", "extensor carpi radialis brevis", "extensor carpi ulnaris", "extensor digitorum", "extensor pollicis longus", "wrist extensors", "forearm extensors"]
+  },
+  "pronator-teres": {
+    name: "Pronator Teres", region: "arm",
+    origin: "Medial epicondyle + coronoid process of ulna.",
+    insertion: "Lateral mid-shaft of radius.",
+    action: "Forearm pronation. Weak elbow flexor.",
+    function: "Primary pronator with elbow flexed (pronator quadratus dominates with elbow straight).",
+    innervation: "Median nerve (C6–C7).",
+    example: "Loaded pronation (cable or DB) at 90° elbow.",
+    strengthCurve: { short: "Pronation end-range", mid: "Mid-range", long: "Supinated start" },
+    aliases: ["pronator teres"]
+  },
+  "supinator": {
+    name: "Supinator", region: "arm",
+    origin: "Lateral epicondyle, radial collateral ligament, supinator crest of ulna.",
+    insertion: "Lateral, posterior, anterior surfaces of proximal radius.",
+    action: "Forearm supination (dedicated supinator when biceps isn't recruited, e.g. elbow extended).",
+    function: "Allows radius to spin without requiring elbow flexion.",
+    innervation: "Deep branch of radial nerve (PIN).",
+    example: "Loaded supination (DB held by one end like a hammer), elbow straight.",
+    strengthCurve: { short: "Supinated hold", mid: "Mid-range", long: "Pronated start" },
+    aliases: ["supinator"]
+  },
+  "rectus-abdominis": {
+    name: "Rectus Abdominis", region: "core",
+    origin: "Pubic crest + pubic symphysis.",
+    insertion: "Costal cartilages of ribs 5–7 + xiphoid process.",
+    action: "Spinal flexion, posterior pelvic tilt.",
+    function: "Anti-extension stabilizer of lumbar spine under load. Co-contracts with diaphragm + obliques + TVA to pressurize abdomen.",
+    innervation: "Anterior rami T7–T12.",
+    example: "Cable crunch, ab wheel rollout, hanging leg raise, dead bug.",
+    strengthCurve: {
+      short: "Cable crunch top, weighted sit-up",
+      mid: "Hanging leg raise",
+      long: "Ab wheel rollout finish, decline reverse crunch start"
+    },
+    pslNote: "Don't apply a \"squat brace\" to a leg extension or crunch. Calibrate the brace + breath to the demand — overpressurizing for low-demand work is wasted effort.",
+    aliases: ["rectus abdominis", "rectus abdominus"]
+  },
+  "external-oblique": {
+    name: "External Oblique", region: "core",
+    origin: "External surfaces of ribs 5–12.",
+    insertion: "Anterior iliac crest, pubic tubercle, linea alba via aponeurosis.",
+    action: "Bilateral: flexion + posterior tilt. Unilateral: lateral flexion (same side) + rotation to opposite side.",
+    function: "Primary anti-rotation + anti-lateral-flexion stabilizer in gait. Most superficial of lateral abdominal wall.",
+    innervation: "Anterior rami T7–T12 + iliohypogastric/ilioinguinal (L1).",
+    example: "Pallof press, suitcase carry, cable woodchop.",
+    strengthCurve: { short: "Side crunch top", mid: "Cable rotation", long: "Side plank with reach" },
+    aliases: ["obliquus externus abdominis", "external oblique", "external abdominal oblique"]
+  },
+  "internal-oblique": {
+    name: "Internal Oblique", region: "core",
+    origin: "Anterior iliac crest, lateral inguinal ligament, thoracolumbar fascia.",
+    insertion: "Inferior borders of ribs 10–12, linea alba, pubic crest.",
+    action: "Bilateral: flexion. Unilateral: lateral flexion (same side) + rotation to SAME side (opposite of external oblique).",
+    function: "Pairs with contralateral external oblique for trunk rotation (the X across the abdomen).",
+    innervation: "Anterior rami T7–T12 + L1.",
+    example: "Anti-rotation work, cable rotation, side plank with reach.",
+    strengthCurve: { short: "—", mid: "Cable rotation", long: "Side plank reach" },
+    aliases: ["obliquus internus abdominis", "internal oblique", "internal abdominal oblique"]
+  },
+  "tva": {
+    name: "Transverse Abdominis", region: "core",
+    origin: "Inner surfaces of costal cartilages ribs 7–12, thoracolumbar fascia, iliac crest, inguinal ligament.",
+    insertion: "Linea alba, pubic crest.",
+    action: "Pure compression of abdominal contents (fibers run horizontally). No spinal motion.",
+    function: "Anatomical weight belt. Co-contracts with diaphragm + pelvic floor to raise intra-abdominal pressure.",
+    innervation: "Anterior rami T7–T12 + L1.",
+    example: "Trained via bracing under any compound lift; deadbug, bird dog.",
+    strengthCurve: { short: "Brace + exhale", mid: "—", long: "Belly-out posture" },
+    aliases: ["transversus abdominis", "transverse abdominis"]
+  },
+  "erector-spinae": {
+    name: "Erector Spinae", region: "core",
+    origin: "Common tendinous mass from sacrum, posterior iliac crest, lumbar/lower thoracic spinous + transverse processes.",
+    insertion: "Spans spine to ribs, transverse processes, spinous processes, mastoid (longissimus capitis).",
+    action: "Bilateral: spinal extension. Unilateral: lateral flexion + ipsilateral rotation.",
+    function: "Anti-flexion stiffness. Resists falling forward under any axial load (squat, deadlift, carry).",
+    innervation: "Posterior rami of spinal nerves (segmental).",
+    example: "Back extension (45°), good morning, deadlift, Jefferson curl (controlled).",
+    strengthCurve: {
+      short: "45° back extension top, hyperextension",
+      mid: "Good morning",
+      long: "Jefferson curl, RDL bottom"
+    },
+    aliases: ["erector spinae", "iliocostalis", "longissimus", "spinalis", "iliocostalis lumborum", "iliocostalis thoracis", "longissimus thoracis"]
+  },
+  "multifidus": {
+    name: "Multifidus", region: "core",
+    origin: "Sacrum, PSIS, mammillary processes of lumbar, transverse processes of thoracic, articular processes of cervical.",
+    insertion: "Spinous process 2–4 segments above origin.",
+    action: "Segmental stabilization; minor extension/rotation.",
+    function: "Deepest segmental stabilizer of lumbar spine. Atrophies fast after LBP injury; rarely auto-restored.",
+    innervation: "Posterior rami (segmental).",
+    example: "Bird dog, dead bug, low-load extension with neutral spine.",
+    strengthCurve: { short: "Bird dog hold", mid: "—", long: "—" },
+    aliases: ["multifidus"]
+  },
+  "ql": {
+    name: "Quadratus Lumborum", region: "core",
+    origin: "Iliac crest + iliolumbar ligament.",
+    insertion: "12th rib + transverse processes of L1–L4.",
+    action: "Lateral flexion of lumbar (unilateral), hip hike, depresses 12th rib in forced expiration. Bilateral: extension assist.",
+    function: "Frontal-plane stabilizer of lumbar spine in gait — every step relies on QL to prevent swing-side hip from dropping.",
+    innervation: "Subcostal (T12) + anterior rami L1–L4.",
+    example: "Suitcase carry, side plank, loaded side bend.",
+    strengthCurve: { short: "Side bend top", mid: "Side plank", long: "Side bend with deficit" },
+    aliases: ["quadratus lumborum"]
+  },
+  "diaphragm": {
+    name: "Diaphragm", region: "core",
+    origin: "Costal: inner surfaces of lower 6 ribs. Sternal: posterior xiphoid. Lumbar: L1–L3 via crura.",
+    insertion: "Central tendon.",
+    action: "Inhalation — descends, increasing thoracic volume. Co-contracts with abs/pelvic floor to pressurize abdomen.",
+    function: "Primary breathing muscle AND primary spinal stabilizer. Two roles share the same muscle.",
+    innervation: "Phrenic nerve (C3–C5).",
+    example: "360° breath training, crocodile breathing, brace + breath under load.",
+    strengthCurve: { short: "End-exhale brace", mid: "Mid-breath brace", long: "End-inhale hold" },
+    aliases: ["diaphragm", "diaphragma", "thoracic diaphragm"]
+  },
+  "glute-max": {
+    name: "Gluteus Maximus", region: "hip",
+    origin: "Posterior gluteal line of ilium, posterior sacrum/coccyx, sacrotuberous ligament, thoracolumbar fascia.",
+    insertion: "Upper: iliotibial band. Deep/lower: gluteal tuberosity of femur.",
+    action: "Hip extension (primary), ER, abduction (upper), adduction (lower).",
+    function: "Drives hip extension in gait, running, jumping, all hinges. Posteriorly tilts the pelvis to neutral.",
+    innervation: "Inferior gluteal nerve (L5–S2).",
+    example: "Hip thrust, RDL, Bulgarian split squat, 45° back extension, kickback.",
+    strengthCurve: {
+      short: "Hip thrust, 45° back extension",
+      mid: "Deadlift, RDL mid-range",
+      long: "Deep RDL, Bulgarian split squat bottom"
+    },
+    pslNote: "Barbalho 2020 found hip thrusts did not produce more glute growth than back squats. Cover all three zones, not three variations of the shortened one.",
+    aliases: ["gluteus maximus", "glute max", "gluteus maximus muscle"]
+  },
+  "glute-med": {
+    name: "Gluteus Medius", region: "hip",
+    origin: "External surface of ilium between anterior + posterior gluteal lines.",
+    insertion: "Lateral surface of greater trochanter of femur.",
+    action: "Hip abduction. Anterior fibers: IR + flexion. Posterior fibers: ER + extension.",
+    function: "Lateral hip stabilizer in the 60% stance phase of gait. Prevents swing-side pelvis drop (Trendelenburg).",
+    innervation: "Superior gluteal nerve (L4–S1).",
+    example: "Single-leg RDL, lateral band walk, copenhagen variant, side-lying hip abduction.",
+    strengthCurve: { short: "Side-lying abduction top", mid: "Lateral band walk", long: "Single-leg balance + reach" },
+    pslNote: "\"Weak glute med\" is rarely an abduction-strength problem — you don't exaggerate abduction when walking. It's a stability failure in single-leg stance. Train it closed-chain.",
+    aliases: ["gluteus medius", "glute med"]
+  },
+  "glute-min": {
+    name: "Gluteus Minimus", region: "hip",
+    origin: "External surface of ilium between anterior + inferior gluteal lines.",
+    insertion: "Anterior surface of greater trochanter of femur.",
+    action: "Hip abduction + IR. Slight flexion.",
+    function: "Works with glute med as frontal-plane stabilizer. The IR component is its distinct contribution.",
+    innervation: "Superior gluteal nerve (L4–S1).",
+    example: "Same as glute med; foot rotated slightly inward in side-lying abduction biases the IR.",
+    strengthCurve: { short: "Side-lying abduction with IR", mid: "—", long: "—" },
+    aliases: ["gluteus minimus", "glute min"]
+  },
+  "tfl": {
+    name: "Tensor Fasciae Latae", region: "hip",
+    origin: "Anterior iliac crest, ASIS.",
+    insertion: "IT band → Gerdy's tubercle of tibia.",
+    action: "Hip flexion, abduction, IR. Tenses the IT band.",
+    function: "Pelvic stabilizer in gait. Anterior tilt contributor when overactive (common pattern: dominant TFL + sleepy glute med + APT).",
+    innervation: "Superior gluteal nerve (L4–S1).",
+    example: "Hard to isolate. Releases (soft tissue) more common than direct training.",
+    strengthCurve: { short: "—", mid: "—", long: "Lateral 90/90 stretch" },
+    aliases: ["tensor fasciae latae", "tensor fascia latae", "tfl"]
+  },
+  "piriformis": {
+    name: "Piriformis", region: "hip",
+    origin: "Anterior surface of sacrum.",
+    insertion: "Superior border of greater trochanter of femur.",
+    action: "ER in hip extension; IR in hip flexion past 90° (sign reverses).",
+    function: "Deep hip stabilizer. Passes near (or through) sciatic nerve — can compress it.",
+    innervation: "Nerve to piriformis (L5–S2).",
+    example: "Clamshell, seated band ER, deep squat (mobility).",
+    strengthCurve: { short: "—", mid: "Clamshell mid", long: "—" },
+    aliases: ["piriformis"]
+  },
+  "deep-six": {
+    name: "Deep External Rotators", region: "hip",
+    origin: "Various points on ischium, obturator membrane, ischial tuberosity.",
+    insertion: "Greater trochanter + intertrochanteric crest of femur.",
+    action: "ER of hip. Slight adduction.",
+    function: "Compress femoral head into acetabulum — true rotator cuff of the hip. Stability, not power.",
+    innervation: "Direct branches from sacral plexus (L5–S2).",
+    example: "Seated band ER, single-leg balance with rotation.",
+    strengthCurve: { short: "ER end-range hold", mid: "Mid-range ER", long: "—" },
+    aliases: ["gemellus superior", "gemellus inferior", "obturator internus", "obturator externus", "quadratus femoris"]
+  },
+  "iliopsoas": {
+    name: "Iliopsoas", region: "hip",
+    origin: "Iliacus: iliac fossa. Psoas major: T12, L1–L5 transverse processes + vertebral bodies.",
+    insertion: "Lesser trochanter of femur via common tendon.",
+    action: "Hip flexion (strongest). With femur fixed: anterior pelvic tilt + spinal flexion. Psoas assists lumbar lateral flexion.",
+    function: "Swings the leg through in gait. Direct mechanical link between lumbar spine and femur.",
+    innervation: "Iliacus: femoral (L2–L4). Psoas: anterior rami L1–L3.",
+    example: "Standing high-knee march with band, hanging leg raise, seated banded hip flexion above 90°.",
+    strengthCurve: { short: "Hip flexion above 90°", mid: "Standing hip flexion to 90°", long: "Hip extension with knee bent" },
+    aliases: ["iliopsoas", "iliacus", "psoas major", "psoas"]
+  },
+  "sartorius": {
+    name: "Sartorius", region: "hip",
+    origin: "Anterior superior iliac spine (ASIS).",
+    insertion: "Medial proximal tibia (pes anserinus).",
+    action: "Hip flexion + abduction + ER; knee flexion + IR of flexed knee. The \"cross-your-leg\" motion.",
+    function: "Long strap-like muscle; assists multiple actions weakly rather than dominating one.",
+    innervation: "Femoral nerve (L2–L3).",
+    example: "Not trained in isolation; activated in any multi-joint lower-body movement.",
+    strengthCurve: { short: "—", mid: "—", long: "—" },
+    aliases: ["sartorius"]
+  },
+  "adductor-magnus": {
+    name: "Adductor Magnus", region: "hip",
+    origin: "Inferior pubic ramus, ischial ramus, ischial tuberosity (hamstring portion).",
+    insertion: "Linea aspera + adductor tubercle of femur.",
+    action: "Hip adduction. Hamstring portion also extends the hip strongly (\"the fourth hamstring\").",
+    function: "Major contributor to hip extension in deep flexion (squat bottom). Often the limiter in deep-squat strength.",
+    innervation: "Obturator nerve + tibial division of sciatic (hamstring portion).",
+    example: "Deep squat, sumo deadlift, copenhagen plank, hip adduction machine.",
+    strengthCurve: { short: "Adduction machine top", mid: "Mid-range", long: "Deep squat bottom, sumo DL" },
+    aliases: ["adductor magnus"]
+  },
+  "adductor-longus": {
+    name: "Adductor Longus", region: "hip",
+    origin: "Anterior body of pubis.",
+    insertion: "Middle third of linea aspera of femur.",
+    action: "Hip adduction, weak flexion.",
+    function: "Frontal-plane control of femur in gait/lunging. Frequent strain site in change-of-direction sports.",
+    innervation: "Obturator nerve (L2–L4).",
+    example: "Cable hip adduction, copenhagen plank, lateral lunge.",
+    strengthCurve: { short: "Adduction machine top", mid: "Lateral lunge mid", long: "Lateral lunge bottom" },
+    aliases: ["adductor longus"]
+  },
+  "adductor-brevis": {
+    name: "Adductor Brevis", region: "hip",
+    origin: "Body + inferior ramus of pubis.",
+    insertion: "Pectineal line + upper linea aspera of femur.",
+    action: "Hip adduction, weak flexion.",
+    function: "Deep adductor, contributes alongside longus and magnus.",
+    innervation: "Obturator nerve (L2–L4).",
+    example: "Cable adduction, lateral lunge.",
+    strengthCurve: { short: "—", mid: "—", long: "—" },
+    aliases: ["adductor brevis"]
+  },
+  "gracilis": {
+    name: "Gracilis", region: "hip",
+    origin: "Body + inferior ramus of pubis.",
+    insertion: "Pes anserinus on medial proximal tibia.",
+    action: "Hip adduction; knee flexion + IR of flexed knee.",
+    function: "Only biarticular adductor — crosses hip and knee.",
+    innervation: "Obturator nerve (L2–L3).",
+    example: "Copenhagen plank, lateral lunge, seated leg curl.",
+    strengthCurve: { short: "Adduction top", mid: "Mid", long: "Copenhagen long-lever" },
+    aliases: ["gracilis"]
+  },
+  "pectineus": {
+    name: "Pectineus", region: "hip",
+    origin: "Pectineal line of pubis.",
+    insertion: "Pectineal line of femur (below lesser trochanter).",
+    action: "Hip flexion + adduction.",
+    function: "Bridges the hip flexor and adductor groups.",
+    innervation: "Femoral nerve (sometimes obturator) (L2–L4).",
+    example: "Hip flexion above 90°, adduction work.",
+    strengthCurve: { short: "—", mid: "—", long: "—" },
+    aliases: ["pectineus"]
+  },
+  "rectus-femoris": {
+    name: "Rectus Femoris", region: "thigh",
+    origin: "Anterior inferior iliac spine (AIIS) + supra-acetabular groove.",
+    insertion: "Patella → tibial tuberosity via patellar tendon.",
+    action: "Knee extension AND hip flexion. Only biarticular quad.",
+    function: "Lengthens when hip extends with knee flexed (lunge bottom, RFESS). That's where to train its lengthened range.",
+    innervation: "Femoral nerve (L2–L4).",
+    example: "RFESS, seated leg extension with reclined torso, sissy squat.",
+    strengthCurve: {
+      short: "Seated leg extension top (reclined), sissy squat top",
+      mid: "Back squat, hack squat",
+      long: "RFESS bottom (rear leg), reverse Nordic"
+    },
+    pslNote: "To target rectus femoris in a leg extension, recline the torso. Upright posture shortens the rectus at the hip, killing its contribution and biasing the vasti.",
+    aliases: ["rectus femoris"]
+  },
+  "vastus-lateralis": {
+    name: "Vastus Lateralis", region: "thigh",
+    origin: "Greater trochanter + lateral lip of linea aspera.",
+    insertion: "Patella → tibial tuberosity via patellar tendon.",
+    action: "Knee extension only.",
+    function: "Largest of the quads. Bulk of quad volume on squats/leg presses.",
+    innervation: "Femoral nerve (L2–L4).",
+    example: "Back squat, leg press, hack squat, upright seated leg extension.",
+    strengthCurve: {
+      short: "Seated leg extension top",
+      mid: "Back squat, leg press",
+      long: "ATG split squat, deep hack squat, sissy squat eccentric"
+    },
+    aliases: ["vastus lateralis"]
+  },
+  "vastus-medialis": {
+    name: "Vastus Medialis", region: "thigh",
+    origin: "Intertrochanteric line + medial lip of linea aspera.",
+    insertion: "Patella → tibial tuberosity via patellar tendon.",
+    action: "Knee extension; VMO (oblique fibers) contributes to medial patellar tracking in terminal extension.",
+    function: "Medial quad. Often weak after knee injury; affects patellar tracking.",
+    innervation: "Femoral nerve (L2–L4).",
+    example: "Terminal knee extension, ATG split squat, Spanish squat.",
+    strengthCurve: { short: "Terminal knee extension", mid: "Squat mid", long: "ATG bottom" },
+    aliases: ["vastus medialis", "vastus medialis oblique"]
+  },
+  "vastus-intermedius": {
+    name: "Vastus Intermedius", region: "thigh",
+    origin: "Anterior + lateral femoral shaft.",
+    insertion: "Patella → tibial tuberosity via patellar tendon.",
+    action: "Knee extension only.",
+    function: "Deepest of the quads, lies under rectus femoris. Pure knee extensor.",
+    innervation: "Femoral nerve (L2–L4).",
+    example: "Any quad-dominant movement.",
+    strengthCurve: { short: "Leg extension top", mid: "Squat mid", long: "Deep squat" },
+    aliases: ["vastus intermedius"]
+  },
+  "biceps-femoris": {
+    name: "Biceps Femoris", region: "thigh",
+    origin: "Long head: ischial tuberosity (biarticular). Short head: lateral lip of linea aspera.",
+    insertion: "Head of fibula (+ lateral tibial condyle).",
+    action: "Knee flexion + ER of flexed knee. Long head extends hip + assists femoral ER.",
+    function: "Lateral hamstring — controls valgus collapse at the knee in gait/landing.",
+    innervation: "Long head: tibial division of sciatic. Short head: common peroneal division.",
+    example: "RDL, Nordic curl, seated leg curl (foot rotated outward).",
+    strengthCurve: {
+      short: "Seated leg curl finish",
+      mid: "Lying leg curl",
+      long: "Stiff-leg DL, RDL deep"
+    },
+    aliases: ["biceps femoris", "biceps femoris long head", "biceps femoris short head"]
+  },
+  "semitendinosus": {
+    name: "Semitendinosus", region: "thigh",
+    origin: "Ischial tuberosity (shared tendon with biceps femoris long head).",
+    insertion: "Medial proximal tibia, part of pes anserinus.",
+    action: "Knee flexion + IR of flexed knee. Hip extension.",
+    function: "Medial hamstring — anti-valgus stabilizer of the knee.",
+    innervation: "Tibial division of sciatic (L5–S2).",
+    example: "Seated leg curl (foot rotated inward), RDL, Nordic curl.",
+    strengthCurve: { short: "Seated leg curl finish", mid: "Nordic mid", long: "RDL deep" },
+    aliases: ["semitendinosus"]
+  },
+  "semimembranosus": {
+    name: "Semimembranosus", region: "thigh",
+    origin: "Ischial tuberosity (deep to semitendinosus).",
+    insertion: "Medial condyle of tibia (posterior aspect).",
+    action: "Knee flexion + IR of flexed knee. Hip extension.",
+    function: "Pairs with semitendinosus as medial hamstring; bulk of medial knee stability.",
+    innervation: "Tibial division of sciatic (L5–S2).",
+    example: "RDL, leg curl, glute-ham raise.",
+    strengthCurve: { short: "Seated leg curl finish", mid: "Lying leg curl", long: "Stiff-leg DL bottom" },
+    pslNote: "Seated leg curl loads hamstrings in lengthened position (hip flexed). To prevent anterior pelvic tilt during the lift, posteriorly tilt the pelvis before initiating. Strap tight at the hip.",
+    aliases: ["semimembranosus"]
+  },
+  "gastrocnemius": {
+    name: "Gastrocnemius", region: "leg",
+    origin: "Medial + lateral heads from posterior surfaces of femoral condyles.",
+    insertion: "Posterior calcaneus via Achilles tendon.",
+    action: "Ankle plantarflexion (knee extended → most lengthened gastroc). Weak knee flexion (biarticular).",
+    function: "Explosive plantarflexion (jumping, sprinting). Fast-twitch dominant. Loses tension when knee bends.",
+    innervation: "Tibial nerve (S1–S2).",
+    example: "Standing calf raise (knee straight), donkey calf raise, leg-press calf raise.",
+    strengthCurve: {
+      short: "Standing calf raise top",
+      mid: "Standing calf raise mid",
+      long: "Standing calf raise with deficit, slow eccentric off step"
+    },
+    aliases: ["gastrocnemius", "gastrocnemius medial head", "gastrocnemius lateral head"]
+  },
+  "soleus": {
+    name: "Soleus", region: "leg",
+    origin: "Posterior head + proximal shaft of fibula, soleal line of tibia.",
+    insertion: "Posterior calcaneus via Achilles tendon.",
+    action: "Ankle plantarflexion only (monoarticular). Active whether knee bent or straight.",
+    function: "Postural + endurance plantarflexor. Vertical fiber orientation — responds best to vertical loading.",
+    innervation: "Tibial nerve (S1–S2).",
+    example: "Seated calf raise (knee bent → gastroc neutralized).",
+    strengthCurve: {
+      short: "Seated calf raise top",
+      mid: "Seated calf raise mid",
+      long: "Deficit seated calf raise"
+    },
+    pslNote: "Soleus has vertical fibers — load it vertically (seated calf raise). It benefits from concentric emphasis. Don't let it be the throwaway warm-up at the end of leg day.",
+    aliases: ["soleus"]
+  },
+  "tibialis-anterior": {
+    name: "Tibialis Anterior", region: "leg",
+    origin: "Lateral condyle + proximal two-thirds of lateral tibia, interosseous membrane.",
+    insertion: "Medial cuneiform + base of 1st metatarsal.",
+    action: "Dorsiflexion + inversion of foot.",
+    function: "Clears the foot during swing phase of gait. Eccentrically controls foot lowering after heel strike.",
+    innervation: "Deep peroneal nerve (L4–L5).",
+    example: "Tib raise (toes lift), tib bar, banded dorsiflexion.",
+    strengthCurve: { short: "Tib raise top", mid: "Mid-range", long: "Plantarflexed start" },
+    aliases: ["tibialis anterior"]
+  },
+  "tibialis-posterior": {
+    name: "Tibialis Posterior", region: "leg",
+    origin: "Posterior surface of tibia, fibula, interosseous membrane.",
+    insertion: "Navicular tuberosity + slips to cuneiforms, cuboid, bases of metatarsals 2–4.",
+    action: "Plantarflexion + inversion of foot.",
+    function: "Primary support of medial longitudinal arch. Dysfunction = adult-acquired flatfoot.",
+    innervation: "Tibial nerve (L4–L5).",
+    example: "Single-leg calf raise with arch focus, banded inversion, short-foot drill.",
+    strengthCurve: { short: "Inversion top", mid: "Mid", long: "Eversion start" },
+    aliases: ["tibialis posterior"]
+  },
+  "peroneus-longus": {
+    name: "Peroneus Longus", region: "leg",
+    origin: "Head + upper two-thirds of lateral fibula.",
+    insertion: "Under the foot to medial cuneiform + base of 1st metatarsal.",
+    action: "Eversion + plantarflexion. Supports transverse arch.",
+    function: "Lateral ankle stabilizer. Frequently weak after ankle sprains → re-injury cycle.",
+    innervation: "Superficial peroneal nerve (L5–S1).",
+    example: "Banded eversion, single-leg balance, lateral hops.",
+    strengthCurve: { short: "Eversion top", mid: "Mid", long: "Inversion start" },
+    aliases: ["peroneus longus", "fibularis longus"]
+  },
+  "peroneus-brevis": {
+    name: "Peroneus Brevis", region: "leg",
+    origin: "Lower two-thirds of lateral fibula.",
+    insertion: "Base of 5th metatarsal.",
+    action: "Eversion + plantarflexion.",
+    function: "Lateral ankle stabilizer alongside peroneus longus.",
+    innervation: "Superficial peroneal nerve (L5–S1).",
+    example: "Banded eversion, lateral hops.",
+    strengthCurve: { short: "Eversion top", mid: "Mid", long: "Inversion start" },
+    aliases: ["peroneus brevis", "fibularis brevis"]
+  }
+};
+
+// ============================================================================
+// MATCHING
+// ============================================================================
+function normalize(s) {
+  return (s || '')
+    .toLowerCase()
+    .replace(/[_\-./]/g, ' ')
+    .replace(/^(musculus|m\.?\s|the\s)/g, '')
+    .replace(/\s+(dexter|sinister|left|right|l|r|sin|dex|001|002)$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Build a reverse alias index: normalized alias → muscle key
+const ALIAS_INDEX = [];
+for (const [key, data] of Object.entries(MUSCLE_DATA)) {
+  for (const alias of data.aliases) {
+    ALIAS_INDEX.push({ alias: normalize(alias), key });
+  }
+  // Always include the canonical name
+  ALIAS_INDEX.push({ alias: normalize(data.name), key });
+}
+// Sort by alias length DESC so longer (more specific) matches win
+ALIAS_INDEX.sort((a, b) => b.alias.length - a.alias.length);
+
+function findMuscleKeyForMesh(meshName) {
+  const n = normalize(meshName);
+  if (!n) return null;
+  for (const { alias, key } of ALIAS_INDEX) {
+    if (n === alias || n.includes(alias)) return key;
+  }
+  return null;
+}
+
+// ============================================================================
+// THREE.JS SETUP
+// ============================================================================
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.background = null;
+
+const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
+camera.position.set(0, 1.2, 3);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 1, 0);
+
+// Lighting
+const hemi = new THREE.HemisphereLight(0xffffff, 0x111111, 0.6);
+scene.add(hemi);
+const key = new THREE.DirectionalLight(0xffffff, 1.2);
+key.position.set(2, 4, 3);
+scene.add(key);
+const fill = new THREE.DirectionalLight(0xc6ff3d, 0.3);
+fill.position.set(-3, 2, -2);
+scene.add(fill);
+const rim = new THREE.DirectionalLight(0x6ad1ff, 0.4);
+rim.position.set(0, 3, -5);
+scene.add(rim);
+
+let model = null;
+let selectableMeshes = [];
+let highlightedMesh = null;
+let highlightOriginalMaterial = null;
+const HIGHLIGHT_COLOR = new THREE.Color(0xc6ff3d);
+const DIM_OPACITY = 0.18;
+let wireMode = false;
+
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+
+function resize() {
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+new ResizeObserver(resize).observe(canvas);
+resize();
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  if (pulseTarget) updatePulse();
+  renderer.render(scene, camera);
+}
+animate();
+
+// ============================================================================
+// MODEL LOADING
+// ============================================================================
+const loader = new GLTFLoader();
+// Draco + Meshopt support for compressed GLBs
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
+loader.setDRACOLoader(dracoLoader);
+loader.setMeshoptDecoder(MeshoptDecoder);
+
+const statusEl = document.getElementById('status');
+const emptyState = document.getElementById('empty-state');
+const progress = document.getElementById('progress');
+const progressText = document.getElementById('progress-text');
+const progressBar = document.getElementById('progress-bar');
+
+function setStatus(text, cls = '') {
+  statusEl.textContent = text;
+  statusEl.className = 'status ' + cls;
+}
+
+function showProgress(text) {
+  progress.classList.add('show');
+  progressText.textContent = text;
+  progressBar.style.width = '0%';
+}
+function updateProgress(pct) { progressBar.style.width = pct + '%'; }
+function hideProgress() { progress.classList.remove('show'); }
+
+function toast(message, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = message;
+  el.className = 'show ' + type;
+  setTimeout(() => el.className = '', 3200);
+}
+
+function clearModel() {
+  if (model) {
+    scene.remove(model);
+    model.traverse(o => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) {
+        if (Array.isArray(o.material)) o.material.forEach(m => m.dispose());
+        else o.material.dispose();
+      }
+    });
+    model = null;
+  }
+  selectableMeshes = [];
+  highlightedMesh = null;
+  highlightOriginalMaterial = null;
+}
+
+function loadFromURL(url, displayName = url) {
+  showProgress('Loading ' + displayName + '…');
+  setStatus('Loading…', '');
+  clearModel();
+  loader.load(url,
+    (gltf) => onModelLoaded(gltf, displayName),
+    (xhr) => { if (xhr.lengthComputable) updateProgress((xhr.loaded / xhr.total) * 100); },
+    (err) => {
+      console.error(err);
+      hideProgress();
+      setStatus('Load failed', 'err');
+      toast('Could not load model: ' + (err.message || 'see console'), 'err');
+    }
+  );
+}
+
+function loadFromFile(file) {
+  showProgress('Reading ' + file.name + '…');
+  setStatus('Loading…', '');
+  clearModel();
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    loader.parse(e.target.result, '',
+      (gltf) => onModelLoaded(gltf, file.name),
+      (err) => {
+        console.error(err);
+        hideProgress();
+        setStatus('Parse failed', 'err');
+        toast('Could not parse: ' + (err.message || 'see console'), 'err');
+      }
+    );
+  };
+  reader.onerror = () => { setStatus('Read failed', 'err'); hideProgress(); };
+  reader.readAsArrayBuffer(file);
+}
+
+function onModelLoaded(gltf, displayName) {
+  model = gltf.scene;
+  scene.add(model);
+
+  // Collect selectable meshes
+  let meshCount = 0;
+  model.traverse(o => {
+    if (o.isMesh) {
+      meshCount++;
+      selectableMeshes.push(o);
+      // Make material(s) selectable/transparent-capable
+      const mats = Array.isArray(o.material) ? o.material : [o.material];
+      mats.forEach(m => {
+        m.transparent = true;
+        m.depthWrite = true;
+      });
+      o.userData.muscleKey = findMuscleKeyForMesh(o.name);
+    }
+  });
+
+  // Center + scale
+  const bbox = new THREE.Box3().setFromObject(model);
+  const size = bbox.getSize(new THREE.Vector3());
+  const center = bbox.getCenter(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const scale = 2 / maxDim;
+  model.scale.multiplyScalar(scale);
+  model.position.sub(center.multiplyScalar(scale));
+  model.position.y += size.y * scale / 2;
+
+  // Re-fit camera
+  fitToModel();
+  buildLayerControls();
+  refreshMuscleList();
+  hideProgress();
+  emptyState.classList.add('hidden');
+
+  const linked = selectableMeshes.filter(m => m.userData.muscleKey).length;
+  setStatus(`${displayName} · ${meshCount} meshes · ${linked} linked`, 'ok');
+  toast(`Loaded ${meshCount} meshes (${linked} matched to DB)`, '');
+}
+
+function fitToModel() {
+  if (!model) return;
+  const bbox = new THREE.Box3().setFromObject(model);
+  const size = bbox.getSize(new THREE.Vector3());
+  const center = bbox.getCenter(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const fov = camera.fov * (Math.PI / 180);
+  const distance = (maxDim / 2) / Math.tan(fov / 2) * 1.8;
+  camera.position.set(center.x, center.y, center.z + distance);
+  controls.target.copy(center);
+  controls.update();
+}
+
+function resetView() {
+  camera.position.set(0, 1.2, 3);
+  controls.target.set(0, 1, 0);
+  controls.update();
+}
+
+// ============================================================================
+// SELECTION + HIGHLIGHTING
+// ============================================================================
+function dimAll() {
+  selectableMeshes.forEach(m => {
+    const mats = Array.isArray(m.material) ? m.material : [m.material];
+    mats.forEach(mat => { mat.opacity = DIM_OPACITY; });
+  });
+}
+function restoreAll() {
+  selectableMeshes.forEach(m => {
+    const mats = Array.isArray(m.material) ? m.material : [m.material];
+    mats.forEach(mat => { mat.opacity = 1; });
+  });
+}
+
+function clearHighlight() {
+  if (!highlightedMesh) return;
+  if (highlightOriginalMaterial) {
+    highlightedMesh.material = highlightOriginalMaterial;
+  }
+  restoreAll();
+  highlightedMesh = null;
+  highlightOriginalMaterial = null;
+  pulseTarget = null;
+}
+
+function highlightMesh(mesh) {
+  clearHighlight();
+  if (!mesh) return;
+  highlightedMesh = mesh;
+  highlightOriginalMaterial = mesh.material;
+  const hl = new THREE.MeshStandardMaterial({
+    color: HIGHLIGHT_COLOR,
+    emissive: new THREE.Color(0x556a18),
+    metalness: 0.1,
+    roughness: 0.4,
+    transparent: true,
+    opacity: 1
+  });
+  mesh.material = hl;
+  dimAll();
+  mesh.material.opacity = 1;
+  startPulse(mesh);
+}
+
+function onPointerDown(event) {
+  // Only treat as a click if minimal drag
+  startX = event.clientX; startY = event.clientY;
+}
+function onPointerUp(event) {
+  if (!model) return;
+  const dx = event.clientX - startX;
+  const dy = event.clientY - startY;
+  if (Math.hypot(dx, dy) > 4) return; // it was a drag, not a click
+
+  const rect = canvas.getBoundingClientRect();
+  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(selectableMeshes, false);
+  if (hits.length === 0) {
+    clearHighlight();
+    showEmptyInfo();
+    refreshActiveListItem(null);
+    return;
+  }
+  const mesh = hits[0].object;
+  highlightMesh(mesh);
+  renderInfoPanel(mesh.userData.muscleKey, mesh.name);
+  refreshActiveListItem(mesh.userData.muscleKey);
+}
+let startX = 0, startY = 0;
+canvas.addEventListener('pointerdown', onPointerDown);
+canvas.addEventListener('pointerup', onPointerUp);
+
+// ============================================================================
+// PULSE ANIMATION (simulates activation)
+// ============================================================================
+let pulseTarget = null;
+let pulseStart = 0;
+let pulseDuration = 0;
+const pulseOriginalScale = new THREE.Vector3();
+function startPulse(mesh) {
+  pulseTarget = mesh;
+  pulseOriginalScale.copy(mesh.scale);
+  pulseStart = performance.now();
+  pulseDuration = 800;
+}
+function updatePulse() {
+  if (!pulseTarget) return;
+  const t = (performance.now() - pulseStart) / pulseDuration;
+  if (t >= 1) {
+    pulseTarget.scale.copy(pulseOriginalScale);
+    pulseTarget = null;
+    return;
+  }
+  const k = 1 + 0.05 * Math.sin(t * Math.PI);
+  pulseTarget.scale.set(pulseOriginalScale.x * k, pulseOriginalScale.y * k, pulseOriginalScale.z * k);
+}
+
+// ============================================================================
+// INFO PANEL
+// ============================================================================
+const infoPanel = document.getElementById('info-panel');
+function showEmptyInfo() {
+  infoPanel.innerHTML = `<div class="empty">
+    <p>Select a muscle to see its origin, insertion, action, and strength curve.</p>
+    <p style="font-size: 11px; margin-top: 20px;">Tip: muscles with full data are marked with a dot in the sidebar list.</p>
+  </div>`;
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+function renderInfoPanel(key, meshName) {
+  if (!key || !MUSCLE_DATA[key]) {
+    infoPanel.innerHTML = `
+      <div class="muscle-card">
+        <h2>${escapeHtml(meshName || 'Unknown structure')}</h2>
+        <div class="mesh-name">mesh: ${escapeHtml(meshName || '')}</div>
+        <div class="no-data-note">
+          <strong>No DB entry.</strong> This mesh isn't in the muscle database — either it's a bone, ligament, organ, or the alias didn't match.
+          <br><br>To add it: open <code>Anatomy_Viewer.html</code>, find the muscle in <code>MUSCLE_DATA</code>, and add this mesh's name to its <code>aliases</code> array (or create a new entry).
+        </div>
+      </div>`;
+    return;
+  }
+  const d = MUSCLE_DATA[key];
+  const sc = d.strengthCurve || {};
+  infoPanel.innerHTML = `
+    <div class="muscle-card">
+      <h2>${escapeHtml(d.name)}</h2>
+      <div class="mesh-name">mesh: ${escapeHtml(meshName || '')}</div>
+      <div class="action-row">
+        <button id="btn-pulse">Pulse (activate)</button>
+        <button id="btn-isolate">Isolate</button>
+        <button id="btn-show-all">Show all</button>
+      </div>
+      <dl>
+        <dt>Origin</dt><dd>${escapeHtml(d.origin)}</dd>
+        <dt>Insertion</dt><dd>${escapeHtml(d.insertion)}</dd>
+        <dt>Action</dt><dd>${escapeHtml(d.action)}</dd>
+        <dt>Function (walk &amp; breathe)</dt><dd>${escapeHtml(d.function)}</dd>
+        <dt>Innervation</dt><dd>${escapeHtml(d.innervation)}</dd>
+        <dt>Example exercise</dt><dd>${escapeHtml(d.example)}</dd>
+        <dt>Strength curve — activation by position</dt>
+        <dd>
+          <div class="strength-zones">
+            <div class="zone"><strong>Shortened</strong>${escapeHtml(sc.short || '—')}</div>
+            <div class="zone"><strong>Mid-range</strong>${escapeHtml(sc.mid || '—')}</div>
+            <div class="zone"><strong>Lengthened</strong>${escapeHtml(sc.long || '—')}</div>
+          </div>
+        </dd>
+      </dl>
+      ${d.pslNote ? `<div class="psl-note"><strong>PSL note:</strong> ${escapeHtml(d.pslNote)}</div>` : ''}
+    </div>`;
+
+  document.getElementById('btn-pulse').onclick = () => { if (highlightedMesh) startPulse(highlightedMesh); };
+  document.getElementById('btn-isolate').onclick = () => {
+    if (!highlightedMesh) return;
+    selectableMeshes.forEach(m => { m.visible = (m === highlightedMesh); });
+  };
+  document.getElementById('btn-show-all').onclick = () => {
+    selectableMeshes.forEach(m => { m.visible = true; });
+  };
+}
+
+// ============================================================================
+// MUSCLE LIST (sidebar)
+// ============================================================================
+const listEl = document.getElementById('muscle-list');
+const searchEl = document.getElementById('search');
+const regionTabs = document.querySelectorAll('#region-tabs button');
+let currentRegion = 'all';
+let currentQuery = '';
+let currentActiveKey = null;
+
+function refreshMuscleList() {
+  const q = currentQuery.toLowerCase();
+  listEl.innerHTML = '';
+  const linkedKeys = new Set();
+  selectableMeshes.forEach(m => { if (m.userData.muscleKey) linkedKeys.add(m.userData.muscleKey); });
+
+  Object.entries(MUSCLE_DATA)
+    .filter(([key, d]) => currentRegion === 'all' || d.region === currentRegion)
+    .filter(([key, d]) => !q || d.name.toLowerCase().includes(q) || d.action.toLowerCase().includes(q) || d.function.toLowerCase().includes(q))
+    .forEach(([key, d]) => {
+      const item = document.createElement('div');
+      const linked = linkedKeys.has(key);
+      const cls = ['item'];
+      if (key === currentActiveKey) cls.push('active');
+      if (linked) cls.push('linked'); else cls.push('notlinked');
+      item.className = cls.join(' ');
+      item.textContent = d.name;
+      item.title = linked ? 'Linked to a mesh — click to select in 3D' : 'No matching mesh found in current model';
+      item.onclick = () => {
+        // Find the first matching mesh
+        const target = selectableMeshes.find(m => m.userData.muscleKey === key);
+        if (target) {
+          highlightMesh(target);
+          renderInfoPanel(key, target.name);
+          currentActiveKey = key;
+          refreshActiveListItem(key);
+        } else {
+          // Show data without 3D selection
+          renderInfoPanel(key, '(not in current model)');
+          currentActiveKey = key;
+          refreshActiveListItem(key);
+        }
+      };
+      listEl.appendChild(item);
+    });
+}
+
+function refreshActiveListItem(key) {
+  currentActiveKey = key;
+  listEl.querySelectorAll('.item').forEach(el => {
+    el.classList.toggle('active', el.textContent === (key ? MUSCLE_DATA[key]?.name : null));
+  });
+}
+
+searchEl.addEventListener('input', () => { currentQuery = searchEl.value; refreshMuscleList(); });
+regionTabs.forEach(b => b.onclick = () => {
+  regionTabs.forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  currentRegion = b.dataset.region;
+  refreshMuscleList();
+});
+
+// initial render
+refreshMuscleList();
+
+// ============================================================================
+// LAYER CONTROLS (auto-discovered from model)
+// ============================================================================
+function buildLayerControls() {
+  const layersEl = document.getElementById('layers');
+  layersEl.innerHTML = '';
+  if (!model) return;
+
+  // Discover top-level groups (skip root)
+  const groups = [];
+  model.children.forEach(child => {
+    if (child.children && child.children.length > 0) groups.push(child);
+  });
+  // If model is flat (no groups), expose a "Show all" toggle only
+  if (groups.length === 0) {
+    const label = document.createElement('label');
+    label.innerHTML = `<input type="checkbox" checked /> Show all (${selectableMeshes.length} meshes)`;
+    label.querySelector('input').onchange = (e) => {
+      selectableMeshes.forEach(m => { m.visible = e.target.checked; });
+    };
+    layersEl.appendChild(label);
+    return;
+  }
+  groups.forEach((g, i) => {
+    const label = document.createElement('label');
+    const name = g.name || `Group ${i+1}`;
+    label.innerHTML = `<input type="checkbox" checked /> ${escapeHtml(name)}`;
+    label.querySelector('input').onchange = (e) => { g.visible = e.target.checked; };
+    layersEl.appendChild(label);
+  });
+}
+
+// ============================================================================
+// FILE LOADING UI
+// ============================================================================
+const fileInput = document.getElementById('file-input');
+function pickFile() { fileInput.click(); }
+fileInput.addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (f) loadFromFile(f);
+  fileInput.value = '';
+});
+document.getElementById('btn-load').onclick = pickFile;
+document.getElementById('btn-load-empty').onclick = pickFile;
+document.getElementById('btn-try-default').onclick = () => loadFromURL('./models/myology.glb', 'myology.glb');
+
+document.getElementById('btn-reset').onclick = resetView;
+document.getElementById('btn-fit').onclick = fitToModel;
+document.getElementById('btn-wire').onclick = () => {
+  wireMode = !wireMode;
+  selectableMeshes.forEach(m => {
+    const mats = Array.isArray(m.material) ? m.material : [m.material];
+    mats.forEach(mat => { mat.wireframe = wireMode; });
+  });
+};
+
+// Drag & drop
+['dragenter','dragover'].forEach(ev => canvas.addEventListener(ev, e => { e.preventDefault(); }));
+canvas.addEventListener('drop', e => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
+    loadFromFile(file);
+  } else {
+    toast('Drop a .glb or .gltf file', 'warn');
+  }
+});
+['dragenter','dragover','drop'].forEach(ev => document.body.addEventListener(ev, e => { e.preventDefault(); }));
+
+// Try auto-load on startup
+// Priority: ?model= URL param > ./models/myology.glb (local default)
+setTimeout(() => {
+  if (URL_MODEL) {
+    loadFromURL(URL_MODEL, URL_MODEL.split('/').pop() || 'model');
+    return;
+  }
+  fetch('./models/myology.glb', { method: 'HEAD' })
+    .then(r => { if (r.ok) loadFromURL('./models/myology.glb', 'myology.glb'); })
+    .catch(() => {});
+}, 200);
+
+</script>
+
+</body>
+</html>
