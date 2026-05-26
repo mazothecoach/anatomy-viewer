@@ -96,11 +96,13 @@
   #viewer-controls {
     position: absolute; top: 12px; right: 12px; display: flex; gap: 6px;
   }
-  #viewer-controls button {
+  #viewer-controls button, #viewer-controls select {
     background: rgba(20,20,20,0.85); color: var(--text); border: 1px solid var(--border); padding: 6px 10px;
-    border-radius: 4px; cursor: pointer; font-size: 12px;
+    border-radius: 4px; cursor: pointer; font-size: 12px; font-family: inherit;
   }
-  #viewer-controls button:hover { border-color: var(--accent); color: var(--accent); }
+  #viewer-controls button:hover, #viewer-controls select:hover { border-color: var(--accent); color: var(--accent); }
+  #viewer-controls select { padding-right: 24px; }
+  #viewer-controls select option { background: var(--surface); color: var(--text); }
 
   #progress {
     position: absolute; bottom: 12px; left: 12px; right: 12px; background: var(--surface); border: 1px solid var(--border);
@@ -210,10 +212,16 @@
   </div>
 
   <div id="viewer-controls">
+    <select id="model-select" title="Switch model">
+      <option value="">— Models —</option>
+      <option value="models/upper-limb.glb">Upper limb (bones + muscles)</option>
+      <option value="models/lower-limb.glb">Lower limb (bones + muscles)</option>
+      <option value="models/overview-skeleton.glb">Skeleton (full body, bones only)</option>
+    </select>
     <button id="btn-reset">Reset view</button>
     <button id="btn-fit">Fit</button>
     <button id="btn-wire">Wireframe</button>
-    <button id="btn-load">Load model…</button>
+    <button id="btn-load">Load .glb…</button>
   </div>
 
   <div id="empty-state">
@@ -1516,6 +1524,20 @@ document.getElementById('btn-wire').onclick = () => {
   });
 };
 
+// Model dropdown switcher
+const modelSelect = document.getElementById('model-select');
+modelSelect.addEventListener('change', (e) => {
+  const v = e.target.value;
+  if (v) loadFromURL(v, v.split('/').pop());
+});
+// Reflect current model in dropdown when URL_MODEL is set
+function syncSelectToURL(url) {
+  if (!url) return;
+  for (const opt of modelSelect.options) {
+    if (opt.value && url.endsWith(opt.value)) { modelSelect.value = opt.value; return; }
+  }
+}
+
 // Drag & drop
 ['dragenter','dragover'].forEach(ev => canvas.addEventListener(ev, e => { e.preventDefault(); }));
 canvas.addEventListener('drop', e => {
@@ -1530,15 +1552,20 @@ canvas.addEventListener('drop', e => {
 ['dragenter','dragover','drop'].forEach(ev => document.body.addEventListener(ev, e => { e.preventDefault(); }));
 
 // Try auto-load on startup
-// Priority: ?model= URL param > ./models/myology.glb (local default)
-setTimeout(() => {
+// Priority: ?model= URL param > models/upper-limb.glb > models/myology.glb
+const DEFAULT_MODELS = ['models/upper-limb.glb', 'models/myology.glb'];
+setTimeout(async () => {
   if (URL_MODEL) {
     loadFromURL(URL_MODEL, URL_MODEL.split('/').pop() || 'model');
+    syncSelectToURL(URL_MODEL);
     return;
   }
-  fetch('./models/myology.glb', { method: 'HEAD' })
-    .then(r => { if (r.ok) loadFromURL('./models/myology.glb', 'myology.glb'); })
-    .catch(() => {});
+  for (const path of DEFAULT_MODELS) {
+    try {
+      const r = await fetch(path, { method: 'HEAD' });
+      if (r.ok) { loadFromURL(path, path.split('/').pop()); syncSelectToURL(path); return; }
+    } catch {}
+  }
 }, 200);
 
 </script>
