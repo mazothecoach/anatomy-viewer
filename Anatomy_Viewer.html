@@ -1137,7 +1137,7 @@ function clearModel() {
   highlightOriginalMaterial = null;
 }
 
-function loadFromURL(url, displayName = url) {
+function loadFromURL(url, displayName = url, onError = null) {
   showProgress('Loading ' + displayName + '…');
   setStatus('Loading…', '');
   clearModel();
@@ -1147,6 +1147,7 @@ function loadFromURL(url, displayName = url) {
     (err) => {
       console.error(err);
       hideProgress();
+      if (onError) { onError(err); return; }
       setStatus('Load failed', 'err');
       toast('Could not load model: ' + (err.message || 'see console'), 'err');
     }
@@ -1551,22 +1552,29 @@ canvas.addEventListener('drop', e => {
 });
 ['dragenter','dragover','drop'].forEach(ev => document.body.addEventListener(ev, e => { e.preventDefault(); }));
 
-// Try auto-load on startup
-// Priority: ?model= URL param > models/upper-limb.glb > models/myology.glb
-const DEFAULT_MODELS = ['models/upper-limb.glb', 'models/myology.glb'];
-setTimeout(async () => {
+// Auto-load on startup — the page should NEVER show an empty model on first visit.
+// Priority: ?model= URL param > myology (full body) > upper-limb > lower-limb > skeleton.
+// Loads directly (no HEAD pre-check) and falls through to the next model on any error.
+const DEFAULT_MODELS = [
+  'models/myology.glb',
+  'models/upper-limb.glb',
+  'models/lower-limb.glb',
+  'models/overview-skeleton.glb'
+];
+function autoLoadChain(i) {
+  if (i >= DEFAULT_MODELS.length) return; // all failed → empty state stays
+  const path = DEFAULT_MODELS[i];
+  syncSelectToURL(path);
+  loadFromURL(path, path.split('/').pop(), () => autoLoadChain(i + 1));
+}
+setTimeout(() => {
   if (URL_MODEL) {
     loadFromURL(URL_MODEL, URL_MODEL.split('/').pop() || 'model');
     syncSelectToURL(URL_MODEL);
     return;
   }
-  for (const path of DEFAULT_MODELS) {
-    try {
-      const r = await fetch(path, { method: 'HEAD' });
-      if (r.ok) { loadFromURL(path, path.split('/').pop()); syncSelectToURL(path); return; }
-    } catch {}
-  }
-}, 200);
+  autoLoadChain(0);
+}, 100);
 
 </script>
 
