@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visor Anatómico — Mazothecoach</title>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <h1 id="app-title">VISOR ANATÓMICO</h1>
+      <span class="sub" data-i18n="tagline"></span>
+      <span class="spacer"></span>
+      <div class="toggles">
+        <button id="toggle-view" class="seg" title="Vista" data-i18n-title="view_toggle"></button>
+        <button id="toggle-lang" class="seg">ES / EN</button>
+      </div>
+      <span id="status" class="status" data-i18n="status_no_model"></span>
+    </header>
+
+    <aside class="left">
+      <h3 data-i18n="layers"></h3>
+      <div class="layer-toggle">
+        <button id="layer-muscle" class="layer-btn active" data-i18n="muscles"></button>
+        <button id="layer-bone" class="layer-btn" data-i18n="bones"></button>
+      </div>
+
+      <h3 data-i18n="search"></h3>
+      <input id="search" type="search" autocomplete="off" data-i18n-ph="search_ph" />
+
+      <div id="list" class="list"></div>
+    </aside>
+
+    <main class="stage">
+      <canvas id="canvas"></canvas>
+      <div id="hud" class="hud" data-i18n="hud"></div>
+      <div id="controls" class="controls">
+        <button id="btn-reset" data-i18n="reset"></button>
+        <button id="btn-fit" data-i18n="fit"></button>
+      </div>
+      <div id="empty" class="empty">
+        <div class="empty-box">
+          <h2 data-i18n="empty_title"></h2>
+          <p data-i18n="empty_body"></p>
+        </div>
+      </div>
+      <div id="progress" class="progress"><span id="progress-text"></span><div class="bar"><div id="progress-bar"></div></div></div>
+    </main>
+
+    <aside class="right">
+      <div id="info" class="info"></div>
+    </aside>
+
+    <footer class="credit">
+      <span data-i18n="credit"></span>
+      <a href="https://www.z-anatomy.com/" target="_blank" rel="noopener">Z-Anatomy</a>
+      ·
+      <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>
+    </footer>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

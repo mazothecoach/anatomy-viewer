@@ -11,4 +11,5 @@ desktop.ini
 
 # Local-only build artifacts
 node_modules/
+dist/
 *.log
