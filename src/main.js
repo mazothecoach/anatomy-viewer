@@ -157,7 +157,7 @@ viewer.loadModel(MODEL_URL, { onProgress: p => showProgress(true, p) })
     showEmpty(false);
     refreshList();
     setStatusForModel();
-    console.info(`[spike] ${meshNames.length} mallas. Ejemplos:`, meshNames.slice(0, 20));
+    console.info(`[spike] ${meshNames.length} mallas, ${linkedIds.size} enlazadas.`);
   })
   .catch(err => {
     console.warn('No se pudo cargar el modelo:', err);
