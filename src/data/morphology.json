@@ -1,0 +1,24 @@
+[
+  {
+    "id": "femur_length",
+    "name": { "es": "Fémur largo vs corto", "en": "Long vs short femur" },
+    "summary": {
+      "es": "La longitud del fémur cambia las palancas de la sentadilla. No es un error de técnica: es morfología. Ajusta el ejercicio a la persona, no al revés.",
+      "en": "Femur length changes the squat's levers. It isn't a technique error — it's morphology. Fit the exercise to the person, not the other way around."
+    },
+    "long": {
+      "label": { "es": "Fémur largo", "en": "Long femur" },
+      "note": {
+        "es": "Palanca larga del muslo → el torso se inclina más para mantener el peso sobre el medio del pie. La sentadilla se vuelve más dominante de cadera (glúteo, isquios, espalda) y puede parecer un 'good morning'. Ayuda: stance más ancha, talones elevados, low-bar o sentadilla frontal; carga el cuádriceps aparte (prensa, extensión).",
+        "en": "Long thigh lever → the torso leans more to keep the load over midfoot. The squat becomes more hip-dominant (glutes, hams, back) and can look like a 'good morning'. Helps: wider stance, elevated heels, low-bar or front squat; train quads separately (leg press, extension)."
+      }
+    },
+    "short": {
+      "label": { "es": "Fémur corto", "en": "Short femur" },
+      "note": {
+        "es": "Palanca corta → el torso se mantiene más vertical y la sentadilla es más dominante de rodilla (cuádriceps). Profundidad fácil con stance estrecha y high-bar. El cuádriceps recibe buen estímulo directo en la propia sentadilla.",
+        "en": "Short lever → the torso stays more upright and the squat is more knee-dominant (quads). Easy depth with a narrow stance and high-bar. The quads get strong direct stimulus from the squat itself."
+      }
+    }
+  }
+]

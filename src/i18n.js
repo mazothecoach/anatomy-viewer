@@ -63,7 +63,11 @@ const STRINGS = {
     hud_touch: 'Arrastrar = rotar · Pellizcar = zoom · Tocar = seleccionar',
     model_upper: 'Miembro superior',
     model_lower: 'Miembro inferior',
-    model_skeleton: 'Esqueleto'
+    model_skeleton: 'Esqueleto',
+    model_full: 'Cuerpo completo',
+    both_sides: 'Ambos lados',
+    mode_morphology: 'Morfología',
+    pick_morphology: 'Elige un tema de morfología para ver cómo cambia el entrenamiento.'
   },
   en: {
     tagline: 'Muscles, bones & ranges per exercise',
@@ -126,7 +130,11 @@ const STRINGS = {
     hud_touch: 'Drag = rotate · Pinch = zoom · Tap = select',
     model_upper: 'Upper limb',
     model_lower: 'Lower limb',
-    model_skeleton: 'Skeleton'
+    model_skeleton: 'Skeleton',
+    model_full: 'Full body',
+    both_sides: 'Both sides',
+    mode_morphology: 'Morphology',
+    pick_morphology: 'Pick a morphology topic to see how it changes training.'
   }
 };
 

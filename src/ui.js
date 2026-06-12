@@ -98,6 +98,46 @@ export function renderHighlightSummary(item, structById, missingIds) {
   </div>`;
 }
 
+// ── Morfología: comparación fémur largo vs corto ─────────────────────────────
+function squatFigure(j, femurColor) {
+  // j = {ankle,knee,hip,shoulder,head,foot:[x1,x2],y}  coordenadas en el viewBox
+  const L = (a, b, c, w) => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+  const dot = p => `<circle cx="${p[0]}" cy="${p[1]}" r="2.5" fill="#9a9a9a"/>`;
+  return [
+    L(j.foot.slice(0,2), j.foot.slice(2,4), '#5a5a5a', 3),     // pie
+    L(j.ankle, j.knee, '#888', 3),                              // pierna
+    L(j.knee, j.hip, femurColor, 6),                            // FÉMUR (resaltado)
+    L(j.hip, j.shoulder, '#888', 3),                            // torso
+    L(j.shoulder, j.head, '#888', 3),                           // cuello
+    `<circle cx="${j.head[0]}" cy="${j.head[1]}" r="7" fill="none" stroke="#888" stroke-width="3"/>`,
+    dot(j.knee), dot(j.hip), dot(j.shoulder)
+  ].join('');
+}
+function squatComparisonSVG(longLabel, shortLabel) {
+  const longJ = { foot:[44,142,96,142], ankle:[60,138], knee:[94,100], hip:[48,108], shoulder:[80,60], head:[85,47] };
+  const shortJ = { foot:[196,142,248,142], ankle:[214,138], knee:[234,104], hip:[212,112], shoulder:[218,62], head:[221,49] };
+  return `<svg viewBox="0 0 300 168" width="100%" aria-hidden="true">
+    <line x1="20" y1="142" x2="280" y2="142" stroke="#2a2a2a" stroke-width="1"/>
+    ${squatFigure(longJ, '#c6ff3d')}
+    ${squatFigure(shortJ, '#6ad1ff')}
+    <text x="70" y="160" text-anchor="middle" fill="#c6ff3d" font-size="11" font-family="sans-serif">${escapeHtml(longLabel)}</text>
+    <text x="223" y="160" text-anchor="middle" fill="#6ad1ff" font-size="11" font-family="sans-serif">${escapeHtml(shortLabel)}</text>
+  </svg>`;
+}
+export function renderMorphology(item) {
+  const info = $('#info');
+  if (!item) { info.innerHTML = `<p class="placeholder">${t('pick_morphology')}</p>`; return; }
+  info.innerHTML = `<div class="muscle-card">
+    <h2>${escapeHtml(tf(item.name))}</h2>
+    <div class="morph-fig">${squatComparisonSVG(tf(item.long.label), tf(item.short.label))}</div>
+    <div class="highlight-summary">${escapeHtml(tf(item.summary))}</div>
+    <dt class="hs-label" style="color:#c6ff3d">${escapeHtml(tf(item.long.label))}</dt>
+    <dd style="font-size:13px;line-height:1.5;margin:3px 0 0">${escapeHtml(tf(item.long.note))}</dd>
+    <dt class="hs-label" style="color:#6ad1ff">${escapeHtml(tf(item.short.label))}</dt>
+    <dd style="font-size:13px;line-height:1.5;margin:3px 0 0">${escapeHtml(tf(item.short.note))}</dd>
+  </div>`;
+}
+
 // ── Lista lateral (modo Explore) ─────────────────────────────────────────────
 export function buildList(structures, linkedIds, onPick) {
   const list = $('#list');
@@ -174,8 +214,8 @@ function closeDrawer() { $('.left').classList.remove('open'); $('#scrim').classL
 export function wireControls(opts) {
   const {
     viewer, onLayer, onLang, initialMode,
-    onMode, onRegion, painZones, physiqueGoals,
-    onPickPain, onPickPhysique, onListPick
+    onMode, onRegion, painZones, physiqueGoals, morphology,
+    onPickPain, onPickPhysique, onPickMorphology, onListPick
   } = opts;
 
   // idioma
@@ -196,7 +236,8 @@ export function wireControls(opts) {
   // modo Explore / Dolor / Físico
   let currentMode = 'explore';
   const modeBtns = {
-    explore: $('#mode-explore'), pain: $('#mode-pain'), physique: $('#mode-physique')
+    explore: $('#mode-explore'), pain: $('#mode-pain'),
+    physique: $('#mode-physique'), morphology: $('#mode-morphology')
   };
   function setMode(mode) {
     currentMode = mode;
@@ -209,11 +250,16 @@ export function wireControls(opts) {
     $('#picker').classList.toggle('hidden', explore);
     if (mode === 'pain') renderPickerList(painZones, 'empty_painzones', onPickPain);
     if (mode === 'physique') renderPickerList(physiqueGoals, 'empty_physique', onPickPhysique);
+    if (mode === 'morphology') {
+      renderPickerList(morphology, 'pick_morphology', onPickMorphology);
+      if (morphology && morphology.length) onPickMorphology(morphology[0]); // auto-muestra el 1°
+    }
     onMode && onMode(mode);
   }
   modeBtns.explore.onclick = () => setMode('explore');
   modeBtns.pain.onclick = () => setMode('pain');
   modeBtns.physique.onclick = () => setMode('physique');
+  modeBtns.morphology.onclick = () => setMode('morphology');
 
   // capas músculo / hueso
   $('#layer-muscle').onclick = () => switchLayer('muscle');

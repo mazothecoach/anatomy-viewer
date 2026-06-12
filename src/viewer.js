@@ -74,26 +74,51 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
     model = null; meshes = []; highlightedMap.clear();
   }
 
-  function loadModel(url, { onProgress } = {}) {
+  function loadOne(url, onProgress) {
     return new Promise((resolve, reject) => {
-      clearModel();
-      loader.load(url, (gltf) => {
-        model = gltf.scene;
-        scene.add(model);
-        meshes = [];
-        model.traverse(o => {
-          if (o.isMesh) {
-            (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { m.transparent = true; });
-            meshes.push(o);
-          }
-        });
-        frameModel();
-        resolve(meshes.map(m => m.name));
-      }, (xhr) => {
-        if (onProgress && xhr.lengthComputable) onProgress(xhr.loaded / xhr.total);
-      }, reject);
+      loader.load(url, g => resolve(g.scene),
+        xhr => { if (onProgress && xhr.lengthComputable) onProgress(xhr.loaded / xhr.total); },
+        reject);
     });
   }
+
+  // Refleja una escena al lado contrario (plano sagital). Clona materiales a
+  // DoubleSide para que la geometría con winding invertido no se descarte.
+  function mirrorScene(src) {
+    const m = src.clone(true);
+    m.scale.x *= -1;
+    m.traverse(o => {
+      if (o.isMesh) {
+        if (Array.isArray(o.material)) o.material = o.material.map(mt => { const c = mt.clone(); c.side = THREE.DoubleSide; return c; });
+        else { o.material = o.material.clone(); o.material.side = THREE.DoubleSide; }
+      }
+    });
+    return m;
+  }
+
+  // Carga uno o varios .glb en un grupo común. mirror=true añade el lado opuesto.
+  function loadModels(urls, { onProgress, mirror = false } = {}) {
+    clearModel();
+    const root = new THREE.Group();
+    model = root;
+    scene.add(root);
+    return Promise.all(urls.map(u => loadOne(u, onProgress))).then(scenes => {
+      scenes.forEach(s => {
+        root.add(s);
+        if (mirror) root.add(mirrorScene(s));
+      });
+      meshes = [];
+      root.traverse(o => {
+        if (o.isMesh) {
+          (Array.isArray(o.material) ? o.material : [o.material]).forEach(mt => { mt.transparent = true; });
+          meshes.push(o);
+        }
+      });
+      frameModel();
+      return meshes.map(m => m.name);
+    });
+  }
+  function loadModel(url, opts) { return loadModels([url], opts); }
 
   // resolver(meshName) -> { id, layer, ... } | null
   function applyResolver(resolver) {
@@ -233,7 +258,7 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   canvas.addEventListener('pointercancel', e => { activePointers.delete(e.pointerId); });
 
   return {
-    loadModel, applyResolver, setLayer, isolateRegion, clearIsolation,
+    loadModel, loadModels, applyResolver, setLayer, isolateRegion, clearIsolation,
     reset, fit, frameModel,
     highlightMesh, highlightById, highlightMany, clearHighlight,
     getMeshNames: () => meshes.map(m => m.name),

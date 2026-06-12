@@ -3,7 +3,7 @@ import { params, validLang } from './params.js';
 import { createViewer } from './viewer.js';
 import {
   renderInfo, clearInfo, buildList, setActiveListItem, applySearchFilter,
-  buildRegionTabs, renderHighlightSummary, wireControls,
+  buildRegionTabs, renderHighlightSummary, renderMorphology, wireControls,
   setStatus, showEmpty, showProgress, applyStaticStrings, openInfoPanel
 } from './ui.js';
 import { setLang, t, tf } from './i18n.js';
@@ -12,6 +12,7 @@ import muscles from './data/muscles.json';
 import bones from './data/bones.json';
 import painZones from './data/painZones.json';
 import physiqueGoals from './data/physiqueGoals.json';
+import morphology from './data/morphology.json';
 
 // ── Datos ──────────────────────────────────────────────────────────────────
 const structures = [...muscles, ...bones];
@@ -90,6 +91,7 @@ function applyHighlightSet(item, field) {
 }
 function onPickPain(zone) { applyHighlightSet(zone, 'strengthen'); }
 function onPickPhysique(goal) { applyHighlightSet(goal, 'targetMuscles'); }
+function onPickMorphology(item) { renderMorphology(item); openInfoPanel(); }
 
 function onMode(mode) {
   // al volver a Explorar, re-aplica el aislamiento de región si lo había
@@ -121,8 +123,10 @@ const ui = wireControls({
   onRegion,
   painZones,
   physiqueGoals,
+  morphology,
   onPickPain,
   onPickPhysique,
+  onPickMorphology,
   onListPick
 });
 
@@ -133,7 +137,9 @@ refreshList();
 mqNarrow.addEventListener('change', () => viewer.fit());
 
 // ── Carga del modelo ──────────────────────────────────────────────────────────
-const DEFAULT_MODEL = params.model || `${import.meta.env.BASE_URL}models/sample.glb`;
+const FULL_BODY = ['models/sample.glb', 'models/lower-limb.glb']; // superior + inferior
+const modelSelect = document.getElementById('model-select');
+const bothSides = document.getElementById('both-sides');
 
 function setStatusForModel() {
   if (modelLoaded) {
@@ -148,11 +154,17 @@ function currentLayer() {
   return document.getElementById('layer-bone').classList.contains('active') ? 'bone' : 'muscle';
 }
 
-function loadModelInto(url) {
+function selectedUrls() {
+  const v = modelSelect.value;
+  const rel = v === '__full__' ? FULL_BODY : [v];
+  return rel.map(r => `${import.meta.env.BASE_URL}${r}`);
+}
+
+function loadCurrent(urls) {
   setStatus('status_loading');
   showProgress(true, 0);
   modelLoaded = false;
-  return viewer.loadModel(url, { onProgress: p => showProgress(true, p) })
+  return viewer.loadModels(urls || selectedUrls(), { mirror: bothSides.checked, onProgress: p => showProgress(true, p) })
     .then(meshNames => {
       viewer.applyResolver(resolveMesh);
       linkedIds = new Set(meshNames.map(resolveMesh).filter(Boolean).map(s => s.id));
@@ -173,10 +185,8 @@ function loadModelInto(url) {
     });
 }
 
-// Selector de modelos
-const modelSelect = document.getElementById('model-select');
-modelSelect.addEventListener('change', () => {
-  loadModelInto(`${import.meta.env.BASE_URL}${modelSelect.value}`);
-});
+modelSelect.addEventListener('change', () => loadCurrent());
+bothSides.addEventListener('change', () => loadCurrent());
 
-loadModelInto(DEFAULT_MODEL);
+if (params.model) loadCurrent([params.model]);
+else loadCurrent();

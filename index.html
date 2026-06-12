@@ -15,6 +15,7 @@
         <button id="mode-explore" class="seg active" data-i18n="mode_explore"></button>
         <button id="mode-pain" class="seg" data-i18n="mode_pain"></button>
         <button id="mode-physique" class="seg" data-i18n="mode_physique"></button>
+        <button id="mode-morphology" class="seg" data-i18n="mode_morphology"></button>
       </div>
       <span class="spacer"></span>
       <div class="toggles">
@@ -51,8 +52,10 @@
         <select id="model-select" class="ctrl-select" title="Modelo">
           <option value="models/sample.glb" data-i18n="model_upper"></option>
           <option value="models/lower-limb.glb" data-i18n="model_lower"></option>
+          <option value="__full__" data-i18n="model_full"></option>
           <option value="models/overview-skeleton.glb" data-i18n="model_skeleton"></option>
         </select>
+        <label class="ctrl-check"><input type="checkbox" id="both-sides" /> <span data-i18n="both_sides"></span></label>
         <button id="btn-reset" data-i18n="reset"></button>
         <button id="btn-fit" data-i18n="fit"></button>
       </div>
