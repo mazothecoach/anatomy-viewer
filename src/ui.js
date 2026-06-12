@@ -159,7 +159,7 @@ export function renderExercise(ex, structById) {
     <dd style="font-size:14px;color:var(--accent);margin:2px 0 0">${escapeHtml(target ? tf(target.name) : (ex.primaryMuscle || '—'))}</dd>
     ${zk ? `<dt class="hs-label">${t('loaded_zone')}</dt>
       <dd><div class="zones">${zoneRow(zk, ZONE_LABEL[ex.loadedZone], 'cap_' + zk, target && target.forceCurve ? target.forceCurve[ex.loadedZone] : null)}</div></dd>` : ''}
-    ${secondary ? `<dt class="hs-label">${t('muscles_highlighted')}</dt><div class="muscle-chips">${secondary}</div>` : ''}
+    ${secondary ? `<dt class="hs-label">${t('secondary_muscles')}</dt><div class="muscle-chips">${secondary}</div>` : ''}
     ${ex.whereToFeel ? `<div class="feel-box"><strong>${t('where_to_feel')}</strong><span>${escapeHtml(tf(ex.whereToFeel))}</span></div>` : ''}
   </div>`;
 }

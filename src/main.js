@@ -95,7 +95,10 @@ function onPickPain(zone) { applyHighlightSet(zone, 'strengthen'); }
 function onPickPhysique(goal) { applyHighlightSet(goal, 'targetMuscles'); }
 function onPickMorphology(item) { renderMorphology(item); openInfoPanel(); }
 function onPickExercise(ex) {
-  if (modelLoaded && ex.primaryMuscle) viewer.highlightById(ex.primaryMuscle);
+  // resalta el primario + los secundarios juntos
+  if (modelLoaded && ex.primaryMuscle) {
+    viewer.highlightMany([ex.primaryMuscle, ...(ex.secondaryMuscles || [])]);
+  }
   renderExercise(ex, structById);
   openInfoPanel();
 }
