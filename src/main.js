@@ -164,6 +164,7 @@ function loadCurrent(urls) {
   setStatus('status_loading');
   showProgress(true, 0);
   modelLoaded = false;
+  const kf = document.getElementById('knee-flex'); if (kf) kf.value = '0';
   return viewer.loadModels(urls || selectedUrls(), { mirror: bothSides.checked, onProgress: p => showProgress(true, p) })
     .then(meshNames => {
       viewer.applyResolver(resolveMesh);
@@ -187,6 +188,13 @@ function loadCurrent(urls) {
 
 modelSelect.addEventListener('change', () => loadCurrent());
 bothSides.addEventListener('change', () => loadCurrent());
+
+// Ocultar vasos/nervios
+document.getElementById('hide-vessels').addEventListener('change', e => viewer.setHideVessels(e.target.checked));
+
+// Flexión de rodilla (articulación básica del tren inferior)
+const kneeFlex = document.getElementById('knee-flex');
+kneeFlex.addEventListener('input', e => viewer.setFlex(Number(e.target.value)));
 
 if (params.model) loadCurrent([params.model]);
 else loadCurrent();

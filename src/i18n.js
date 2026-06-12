@@ -66,6 +66,8 @@ const STRINGS = {
     model_skeleton: 'Esqueleto',
     model_full: 'Cuerpo completo',
     both_sides: 'Ambos lados',
+    hide_vessels: 'Ocultar vasos/nervios',
+    knee_flex: 'Flexión rodilla',
     mode_morphology: 'Morfología',
     pick_morphology: 'Elige un tema de morfología para ver cómo cambia el entrenamiento.'
   },
@@ -133,6 +135,8 @@ const STRINGS = {
     model_skeleton: 'Skeleton',
     model_full: 'Full body',
     both_sides: 'Both sides',
+    hide_vessels: 'Hide vessels/nerves',
+    knee_flex: 'Knee flex',
     mode_morphology: 'Morphology',
     pick_morphology: 'Pick a morphology topic to see how it changes training.'
   }

@@ -45,6 +45,9 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   const highlightedMap = new Map();
   let currentLayer = null;          // 'muscle' | 'bone' | null
   let currentRegionFilter = null;   // predicate(struct) → bool, o null
+  let hideVessels = false;
+  // Vasos y nervios (distraen): arterias, venas, plexos, raíces, redes/arcos vasculares.
+  const VESSEL_RE = /artery|arteries|arterial|vein|veins|venous|\bvena\b|vascular|vessel|nerve|nervus|plexus|lymph|ganglion|c\d ?root|thyrocervical|costocervical|(palmar|plantar|venous|dorsal venous).{0,6}(arch|network)/i;
 
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -64,6 +67,7 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   })();
 
   function clearModel() {
+    teardownFlex();
     if (model) {
       scene.remove(model);
       model.traverse(o => {
@@ -135,12 +139,16 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
     const s = m.userData.struct;
     return s ? !!currentRegionFilter(s) : false;
   }
+  function vesselOK(m) {
+    return !hideVessels || !VESSEL_RE.test((m.name || '').replace(/_/g, ' '));
+  }
   function applyVisibility() {
-    meshes.forEach(m => { m.visible = layerOK(m) && regionOK(m); });
+    meshes.forEach(m => { m.visible = layerOK(m) && regionOK(m) && vesselOK(m); });
   }
   function setLayer(layer) { currentLayer = layer; applyVisibility(); }
   function isolateRegion(pred) { currentRegionFilter = pred; applyVisibility(); }
   function clearIsolation() { currentRegionFilter = null; applyVisibility(); }
+  function setHideVessels(b) { hideVessels = b; applyVisibility(); }
 
   // ── Encuadre ──────────────────────────────────────────────────────────────
   function frameModel() {
@@ -170,6 +178,41 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
     camera.position.set(0, 1.2, 3);
     controls.target.set(0, 1, 0);
     controls.update();
+  }
+
+  // ── Articulación básica (sin rig): flexión de rodilla del tren inferior ──────
+  let flexPivot = null;
+  function setupLowerFlex() {
+    teardownFlex();
+    if (!model || !meshes.length) return false;
+    const ref = meshes.filter(m => /tibia|patella/i.test(m.name));
+    if (!ref.length) return false;
+    const refBox = new THREE.Box3();
+    ref.forEach(m => refBox.expandByObject(m));
+    const kneeY = refBox.max.y; // parte alta de la tibia ≈ eje de la rodilla
+    const kneeC = refBox.getCenter(new THREE.Vector3()); // x/z de la rodilla real
+    flexPivot = new THREE.Group();
+    model.add(flexPivot);
+    flexPivot.position.copy(model.worldToLocal(new THREE.Vector3(kneeC.x, kneeY, kneeC.z)));
+    // todo lo que esté por debajo de la rodilla se mueve con la pierna
+    const below = meshes.filter(m => {
+      const c = new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3());
+      return c.y < kneeY;
+    });
+    below.forEach(m => flexPivot.attach(m));
+    return below.length > 0;
+  }
+  function setFlex(deg) {
+    if (!flexPivot && !setupLowerFlex()) return false;
+    flexPivot.rotation.x = deg * Math.PI / 180;
+    return true;
+  }
+  function teardownFlex() {
+    if (flexPivot && model) {
+      [...flexPivot.children].forEach(ch => model.attach(ch));
+      model.remove(flexPivot);
+    }
+    flexPivot = null;
   }
 
   // ── Resaltado (uno o varios) ────────────────────────────────────────────────
@@ -259,6 +302,7 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
 
   return {
     loadModel, loadModels, applyResolver, setLayer, isolateRegion, clearIsolation,
+    setHideVessels, setFlex, teardownFlex,
     reset, fit, frameModel,
     highlightMesh, highlightById, highlightMany, clearHighlight,
     getMeshNames: () => meshes.map(m => m.name),
