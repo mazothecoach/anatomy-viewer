@@ -133,7 +133,7 @@ refreshList();
 mqNarrow.addEventListener('change', () => viewer.fit());
 
 // ── Carga del modelo ──────────────────────────────────────────────────────────
-const MODEL_URL = params.model || `${import.meta.env.BASE_URL}models/sample.glb`;
+const DEFAULT_MODEL = params.model || `${import.meta.env.BASE_URL}models/sample.glb`;
 
 function setStatusForModel() {
   if (modelLoaded) {
@@ -144,24 +144,39 @@ function setStatusForModel() {
   }
 }
 
-setStatus('status_loading');
-showProgress(true, 0);
-viewer.loadModel(MODEL_URL, { onProgress: p => showProgress(true, p) })
-  .then(meshNames => {
-    viewer.applyResolver(resolveMesh);
-    linkedIds = new Set(meshNames.map(resolveMesh).filter(Boolean).map(s => s.id));
-    viewer.setLayer('muscle');
-    if (activeRegion) viewer.isolateRegion(s => s.region === activeRegion);
-    modelLoaded = true;
-    showProgress(false);
-    showEmpty(false);
-    refreshList();
-    setStatusForModel();
-    console.info(`[spike] ${meshNames.length} mallas, ${linkedIds.size} enlazadas.`);
-  })
-  .catch(err => {
-    console.warn('No se pudo cargar el modelo:', err);
-    showProgress(false);
-    showEmpty(true);
-    setStatus('status_no_model');
-  });
+function currentLayer() {
+  return document.getElementById('layer-bone').classList.contains('active') ? 'bone' : 'muscle';
+}
+
+function loadModelInto(url) {
+  setStatus('status_loading');
+  showProgress(true, 0);
+  modelLoaded = false;
+  return viewer.loadModel(url, { onProgress: p => showProgress(true, p) })
+    .then(meshNames => {
+      viewer.applyResolver(resolveMesh);
+      linkedIds = new Set(meshNames.map(resolveMesh).filter(Boolean).map(s => s.id));
+      viewer.setLayer(currentLayer());
+      if (activeRegion) viewer.isolateRegion(s => s.region === activeRegion);
+      modelLoaded = true;
+      showProgress(false);
+      showEmpty(false);
+      refreshList();
+      setStatusForModel();
+      console.info(`[model] ${meshNames.length} mallas, ${linkedIds.size} enlazadas.`);
+    })
+    .catch(err => {
+      console.warn('No se pudo cargar el modelo:', err);
+      showProgress(false);
+      showEmpty(true);
+      setStatus('status_no_model');
+    });
+}
+
+// Selector de modelos
+const modelSelect = document.getElementById('model-select');
+modelSelect.addEventListener('change', () => {
+  loadModelInto(`${import.meta.env.BASE_URL}${modelSelect.value}`);
+});
+
+loadModelInto(DEFAULT_MODEL);

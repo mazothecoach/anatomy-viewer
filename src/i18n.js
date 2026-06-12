@@ -60,7 +60,10 @@ const STRINGS = {
     sidebar_toggle: 'Menú',
     close: 'Cerrar',
     info_panel: 'Información',
-    hud_touch: 'Arrastrar = rotar · Pellizcar = zoom · Tocar = seleccionar'
+    hud_touch: 'Arrastrar = rotar · Pellizcar = zoom · Tocar = seleccionar',
+    model_upper: 'Miembro superior',
+    model_lower: 'Miembro inferior',
+    model_skeleton: 'Esqueleto'
   },
   en: {
     tagline: 'Muscles, bones & ranges per exercise',
@@ -120,7 +123,10 @@ const STRINGS = {
     sidebar_toggle: 'Menu',
     close: 'Close',
     info_panel: 'Info',
-    hud_touch: 'Drag = rotate · Pinch = zoom · Tap = select'
+    hud_touch: 'Drag = rotate · Pinch = zoom · Tap = select',
+    model_upper: 'Upper limb',
+    model_lower: 'Lower limb',
+    model_skeleton: 'Skeleton'
   }
 };
 

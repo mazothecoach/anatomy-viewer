@@ -1947,7 +1947,9 @@
   },
   {
     "id": "gluteus_maximus",
-    "meshNames": [],
+    "meshNames": [
+      "Gluteus_maximus_muscler"
+    ],
     "layer": "muscle",
     "region": "hip",
     "name": {
@@ -2014,7 +2016,9 @@
   },
   {
     "id": "gluteus_medius",
-    "meshNames": [],
+    "meshNames": [
+      "Gluteus_medius_muscler"
+    ],
     "layer": "muscle",
     "region": "hip",
     "name": {
@@ -2081,7 +2085,9 @@
   },
   {
     "id": "gluteus_minimus",
-    "meshNames": [],
+    "meshNames": [
+      "Gluteus_minimus_muscler"
+    ],
     "layer": "muscle",
     "region": "hip",
     "name": {
@@ -2143,7 +2149,9 @@
   },
   {
     "id": "tensor_fasciae_latae",
-    "meshNames": [],
+    "meshNames": [
+      "Tensor_fasciae_lataer"
+    ],
     "layer": "muscle",
     "region": "hip",
     "name": {
@@ -2204,7 +2212,9 @@
   },
   {
     "id": "piriformis",
-    "meshNames": [],
+    "meshNames": [
+      "Piriformis_muscler"
+    ],
     "layer": "muscle",
     "region": "hip",
     "name": {
@@ -2265,7 +2275,13 @@
   },
   {
     "id": "deep_external_rotators",
-    "meshNames": [],
+    "meshNames": [
+      "Inferior_gemellus_muscler",
+      "Obturator_externusr",
+      "Obturator_internusr",
+      "Quadratus_femoris_muscler",
+      "Superior_gemellus_muscler"
+    ],
     "layer": "muscle",
     "region": "hip",
     "name": {
@@ -2325,7 +2341,10 @@
   },
   {
     "id": "iliopsoas",
-    "meshNames": [],
+    "meshNames": [
+      "Iliacus_muscler",
+      "Psoas_majorr"
+    ],
     "layer": "muscle",
     "region": "hip",
     "name": {
@@ -2387,7 +2406,9 @@
   },
   {
     "id": "sartorius",
-    "meshNames": [],
+    "meshNames": [
+      "Sartorius_muscler"
+    ],
     "layer": "muscle",
     "region": "hip",
     "name": {
@@ -2447,7 +2468,9 @@
   },
   {
     "id": "adductor_magnus",
-    "meshNames": [],
+    "meshNames": [
+      "Adductor_magnusr"
+    ],
     "layer": "muscle",
     "region": "hip",
     "name": {
@@ -2509,7 +2532,9 @@
   },
   {
     "id": "adductor_longus",
-    "meshNames": [],
+    "meshNames": [
+      "Adductor_longusr"
+    ],
     "layer": "muscle",
     "region": "hip",
     "name": {
@@ -2570,7 +2595,9 @@
   },
   {
     "id": "adductor_brevis",
-    "meshNames": [],
+    "meshNames": [
+      "Adductor_brevisr"
+    ],
     "layer": "muscle",
     "region": "hip",
     "name": {
@@ -2630,7 +2657,9 @@
   },
   {
     "id": "gracilis",
-    "meshNames": [],
+    "meshNames": [
+      "Gracilis_muscler"
+    ],
     "layer": "muscle",
     "region": "hip",
     "name": {
@@ -2691,7 +2720,9 @@
   },
   {
     "id": "pectineus",
-    "meshNames": [],
+    "meshNames": [
+      "Pectineus_muscler"
+    ],
     "layer": "muscle",
     "region": "hip",
     "name": {
@@ -2751,7 +2782,9 @@
   },
   {
     "id": "rectus_femoris",
-    "meshNames": [],
+    "meshNames": [
+      "Rectus_femorisr"
+    ],
     "layer": "muscle",
     "region": "thigh",
     "name": {
@@ -2816,7 +2849,9 @@
   },
   {
     "id": "vastus_lateralis",
-    "meshNames": [],
+    "meshNames": [
+      "Vastus_lateralis_muscler"
+    ],
     "layer": "muscle",
     "region": "thigh",
     "name": {
@@ -2880,7 +2915,9 @@
   },
   {
     "id": "vastus_medialis",
-    "meshNames": [],
+    "meshNames": [
+      "Vastus_medialis_muscler"
+    ],
     "layer": "muscle",
     "region": "thigh",
     "name": {
@@ -2943,7 +2980,9 @@
   },
   {
     "id": "vastus_intermedius",
-    "meshNames": [],
+    "meshNames": [
+      "Vastus_intermedius_muscler"
+    ],
     "layer": "muscle",
     "region": "thigh",
     "name": {
@@ -3006,7 +3045,10 @@
   },
   {
     "id": "biceps_femoris",
-    "meshNames": [],
+    "meshNames": [
+      "Long_head_of_biceps_femorisr",
+      "Short_head_of_biceps_femorisr"
+    ],
     "layer": "muscle",
     "region": "thigh",
     "name": {
@@ -3069,7 +3111,9 @@
   },
   {
     "id": "semitendinosus",
-    "meshNames": [],
+    "meshNames": [
+      "Semitendinosus_muscler"
+    ],
     "layer": "muscle",
     "region": "thigh",
     "name": {
@@ -3131,7 +3175,9 @@
   },
   {
     "id": "semimembranosus",
-    "meshNames": [],
+    "meshNames": [
+      "Semimembranosus_muscler"
+    ],
     "layer": "muscle",
     "region": "thigh",
     "name": {
@@ -3193,7 +3239,10 @@
   },
   {
     "id": "gastrocnemius",
-    "meshNames": [],
+    "meshNames": [
+      "Lateral_head_of_gastrocnemiusr",
+      "Medial_head_of_gastrocnemiusr"
+    ],
     "layer": "muscle",
     "region": "leg",
     "name": {
@@ -3255,7 +3304,9 @@
   },
   {
     "id": "soleus",
-    "meshNames": [],
+    "meshNames": [
+      "Soleus_muscler"
+    ],
     "layer": "muscle",
     "region": "leg",
     "name": {
@@ -3314,7 +3365,9 @@
   },
   {
     "id": "tibialis_anterior",
-    "meshNames": [],
+    "meshNames": [
+      "Tibialis_anterior_muscler"
+    ],
     "layer": "muscle",
     "region": "leg",
     "name": {
@@ -3375,7 +3428,9 @@
   },
   {
     "id": "tibialis_posterior",
-    "meshNames": [],
+    "meshNames": [
+      "Tibialis_posterior_muscler"
+    ],
     "layer": "muscle",
     "region": "leg",
     "name": {
@@ -3435,7 +3490,9 @@
   },
   {
     "id": "peroneus_longus",
-    "meshNames": [],
+    "meshNames": [
+      "Fibularis_longus_muscler"
+    ],
     "layer": "muscle",
     "region": "leg",
     "name": {
@@ -3493,7 +3550,9 @@
   },
   {
     "id": "peroneus_brevis",
-    "meshNames": [],
+    "meshNames": [
+      "Fibularis_brevis_muscler"
+    ],
     "layer": "muscle",
     "region": "leg",
     "name": {
