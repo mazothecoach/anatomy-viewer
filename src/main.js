@@ -3,7 +3,7 @@ import { params, validLang } from './params.js';
 import { createViewer } from './viewer.js';
 import {
   renderInfo, clearInfo, buildList, setActiveListItem, applySearchFilter,
-  buildRegionTabs, renderHighlightSummary, renderMorphology, wireControls,
+  buildRegionTabs, renderHighlightSummary, renderMorphology, renderExercise, wireControls,
   setStatus, showEmpty, showProgress, applyStaticStrings, openInfoPanel
 } from './ui.js';
 import { setLang, t, tf } from './i18n.js';
@@ -13,6 +13,7 @@ import bones from './data/bones.json';
 import painZones from './data/painZones.json';
 import physiqueGoals from './data/physiqueGoals.json';
 import morphology from './data/morphology.json';
+import exercises from './data/exercises.json';
 
 // ── Datos ──────────────────────────────────────────────────────────────────
 const structures = [...muscles, ...bones];
@@ -92,6 +93,11 @@ function applyHighlightSet(item, field) {
 function onPickPain(zone) { applyHighlightSet(zone, 'strengthen'); }
 function onPickPhysique(goal) { applyHighlightSet(goal, 'targetMuscles'); }
 function onPickMorphology(item) { renderMorphology(item); openInfoPanel(); }
+function onPickExercise(ex) {
+  if (modelLoaded && ex.primaryMuscle) viewer.highlightById(ex.primaryMuscle);
+  renderExercise(ex, structById);
+  openInfoPanel();
+}
 
 function onMode(mode) {
   // al volver a Explorar, re-aplica el aislamiento de región si lo había
@@ -124,9 +130,11 @@ const ui = wireControls({
   painZones,
   physiqueGoals,
   morphology,
+  exercises,
   onPickPain,
   onPickPhysique,
   onPickMorphology,
+  onPickExercise,
   onListPick
 });
 
@@ -186,15 +194,22 @@ function loadCurrent(urls) {
     });
 }
 
-modelSelect.addEventListener('change', () => loadCurrent());
-bothSides.addEventListener('change', () => loadCurrent());
+// La flexión de rodilla sin rig solo se ve bien en una pierna sola:
+// se oculta en cuerpo completo / ambos lados (donde se desbarata).
+function updateFlexVisibility() {
+  const ok = modelSelect.value === 'models/lower-limb.glb' && !bothSides.checked;
+  document.getElementById('flex-control').style.display = ok ? '' : 'none';
+}
+modelSelect.addEventListener('change', () => { updateFlexVisibility(); loadCurrent(); });
+bothSides.addEventListener('change', () => { updateFlexVisibility(); loadCurrent(); });
 
 // Ocultar vasos/nervios
 document.getElementById('hide-vessels').addEventListener('change', e => viewer.setHideVessels(e.target.checked));
 
-// Flexión de rodilla (articulación básica del tren inferior)
+// Flexión de rodilla (articulación básica del tren inferior, una pierna)
 const kneeFlex = document.getElementById('knee-flex');
 kneeFlex.addEventListener('input', e => viewer.setFlex(Number(e.target.value)));
 
+updateFlexVisibility();
 if (params.model) loadCurrent([params.model]);
 else loadCurrent();

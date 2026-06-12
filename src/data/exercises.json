@@ -1,1 +1,50 @@
-[]
+[
+  {
+    "id": "incline_db_curl",
+    "name": { "es": "Curl inclinado con mancuerna", "en": "Incline DB curl" },
+    "primaryMuscle": "biceps_brachii",
+    "secondaryMuscles": ["brachialis"],
+    "loadedZone": "lengthened",
+    "region": "arm",
+    "whereToFeel": {
+      "es": "En la parte baja del bíceps, cerca del codo, sobre todo en el estiramiento al bajar el peso.",
+      "en": "In the lower biceps near the elbow, especially on the stretch as you lower the weight."
+    }
+  },
+  {
+    "id": "high_cable_curl",
+    "name": { "es": "Curl en polea alta", "en": "High cable curl" },
+    "primaryMuscle": "biceps_brachii",
+    "secondaryMuscles": [],
+    "loadedZone": "shortened",
+    "region": "arm",
+    "whereToFeel": {
+      "es": "En el pico del bíceps, en la contracción de arriba con el codo flexionado y el hombro elevado.",
+      "en": "At the biceps peak, in the squeeze up top with the elbow flexed and the shoulder raised."
+    }
+  },
+  {
+    "id": "rfess",
+    "name": { "es": "Sentadilla búlgara (RFESS)", "en": "Bulgarian split squat (RFESS)" },
+    "primaryMuscle": "gluteus_maximus",
+    "secondaryMuscles": ["vastus_lateralis", "adductor_magnus"],
+    "loadedZone": "lengthened",
+    "region": "hip",
+    "whereToFeel": {
+      "es": "En el glúteo de la pierna de adelante, estirado en la parte baja del movimiento.",
+      "en": "In the glute of the front leg, stretched at the bottom of the rep."
+    }
+  },
+  {
+    "id": "seated_leg_extension",
+    "name": { "es": "Extensión de pierna sentado", "en": "Seated leg extension" },
+    "primaryMuscle": "rectus_femoris",
+    "secondaryMuscles": ["vastus_lateralis", "vastus_medialis"],
+    "loadedZone": "shortened",
+    "region": "thigh",
+    "whereToFeel": {
+      "es": "En el cuádriceps, en la contracción de arriba al extender la rodilla; reclina el torso para sentir más el recto femoral.",
+      "en": "In the quads, in the top squeeze as you extend the knee; recline the torso to feel the rectus femoris more."
+    }
+  }
+]

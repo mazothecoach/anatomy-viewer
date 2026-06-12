@@ -69,7 +69,13 @@ const STRINGS = {
     hide_vessels: 'Ocultar vasos/nervios',
     knee_flex: 'Flexión rodilla',
     mode_morphology: 'Morfología',
-    pick_morphology: 'Elige un tema de morfología para ver cómo cambia el entrenamiento.'
+    pick_morphology: 'Elige un tema de morfología para ver cómo cambia el entrenamiento.',
+    mode_exercise: 'Ejercicio',
+    pick_exercise: 'Elige un ejercicio para ver qué músculo trabaja y dónde sentirlo.',
+    empty_exercises: 'Aún no hay ejercicios cargados.',
+    where_to_feel: '¿Dónde lo deberías sentir?',
+    target_muscle: 'Músculo objetivo',
+    loaded_zone: 'Zona cargada'
   },
   en: {
     tagline: 'Muscles, bones & ranges per exercise',
@@ -138,7 +144,13 @@ const STRINGS = {
     hide_vessels: 'Hide vessels/nerves',
     knee_flex: 'Knee flex',
     mode_morphology: 'Morphology',
-    pick_morphology: 'Pick a morphology topic to see how it changes training.'
+    pick_morphology: 'Pick a morphology topic to see how it changes training.',
+    mode_exercise: 'Exercise',
+    pick_exercise: 'Pick an exercise to see which muscle it works and where to feel it.',
+    empty_exercises: 'No exercises loaded yet.',
+    where_to_feel: 'Where should you feel it?',
+    target_muscle: 'Target muscle',
+    loaded_zone: 'Loaded zone'
   }
 };
 

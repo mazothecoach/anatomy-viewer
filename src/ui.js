@@ -138,6 +138,28 @@ export function renderMorphology(item) {
   </div>`;
 }
 
+// ── Ejercicio: músculo objetivo + zona + dónde sentirlo ──────────────────────
+const ZONE_KEY = { shortened: 'short', mid: 'mid', lengthened: 'long' };
+const ZONE_LABEL = { shortened: 'zone_short', mid: 'zone_mid', lengthened: 'zone_long' };
+export function renderExercise(ex, structById) {
+  const info = $('#info');
+  const target = ex.primaryMuscle ? structById.get(ex.primaryMuscle) : null;
+  const zk = ZONE_KEY[ex.loadedZone];
+  const secondary = (ex.secondaryMuscles || []).map(id => {
+    const s = structById.get(id);
+    return `<span class="chip">${escapeHtml(s ? tf(s.name) : id)}</span>`;
+  }).join('');
+  info.innerHTML = `<div class="muscle-card">
+    <h2>${escapeHtml(tf(ex.name))}</h2>
+    <dt class="hs-label">${t('target_muscle')}</dt>
+    <dd style="font-size:14px;color:var(--accent);margin:2px 0 0">${escapeHtml(target ? tf(target.name) : (ex.primaryMuscle || '—'))}</dd>
+    ${zk ? `<dt class="hs-label">${t('loaded_zone')}</dt>
+      <dd><div class="zones">${zoneRow(zk, ZONE_LABEL[ex.loadedZone], 'cap_' + zk, target && target.forceCurve ? target.forceCurve[ex.loadedZone] : null)}</div></dd>` : ''}
+    ${secondary ? `<dt class="hs-label">${t('muscles_highlighted')}</dt><div class="muscle-chips">${secondary}</div>` : ''}
+    ${ex.whereToFeel ? `<div class="feel-box"><strong>${t('where_to_feel')}</strong><span>${escapeHtml(tf(ex.whereToFeel))}</span></div>` : ''}
+  </div>`;
+}
+
 // ── Lista lateral (modo Explore) ─────────────────────────────────────────────
 export function buildList(structures, linkedIds, onPick) {
   const list = $('#list');
@@ -214,8 +236,8 @@ function closeDrawer() { $('.left').classList.remove('open'); $('#scrim').classL
 export function wireControls(opts) {
   const {
     viewer, onLayer, onLang, initialMode,
-    onMode, onRegion, painZones, physiqueGoals, morphology,
-    onPickPain, onPickPhysique, onPickMorphology, onListPick
+    onMode, onRegion, painZones, physiqueGoals, morphology, exercises,
+    onPickPain, onPickPhysique, onPickMorphology, onPickExercise, onListPick
   } = opts;
 
   // idioma
@@ -236,7 +258,7 @@ export function wireControls(opts) {
   // modo Explore / Dolor / Físico
   let currentMode = 'explore';
   const modeBtns = {
-    explore: $('#mode-explore'), pain: $('#mode-pain'),
+    explore: $('#mode-explore'), exercise: $('#mode-exercise'), pain: $('#mode-pain'),
     physique: $('#mode-physique'), morphology: $('#mode-morphology')
   };
   function setMode(mode) {
@@ -248,6 +270,7 @@ export function wireControls(opts) {
     const explore = mode === 'explore';
     $('#explore-panel').classList.toggle('hidden', !explore);
     $('#picker').classList.toggle('hidden', explore);
+    if (mode === 'exercise') renderPickerList(exercises, 'empty_exercises', onPickExercise);
     if (mode === 'pain') renderPickerList(painZones, 'empty_painzones', onPickPain);
     if (mode === 'physique') renderPickerList(physiqueGoals, 'empty_physique', onPickPhysique);
     if (mode === 'morphology') {
@@ -257,6 +280,7 @@ export function wireControls(opts) {
     onMode && onMode(mode);
   }
   modeBtns.explore.onclick = () => setMode('explore');
+  modeBtns.exercise.onclick = () => setMode('exercise');
   modeBtns.pain.onclick = () => setMode('pain');
   modeBtns.physique.onclick = () => setMode('physique');
   modeBtns.morphology.onclick = () => setMode('morphology');
