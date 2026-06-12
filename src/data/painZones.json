@@ -1,17 +1,36 @@
 [
   {
     "id": "knee",
-    "name": { "es": "Rodilla", "en": "Knee" },
-    "strengthen": ["vastus_medialis", "rectus_femoris", "gluteus_medius", "gluteus_minimus", "tibialis_posterior"],
+    "name": {
+      "es": "Rodilla",
+      "en": "Knee"
+    },
+    "strengthen": [
+      "vastus_medialis",
+      "rectus_femoris",
+      "gluteus_medius",
+      "gluteus_minimus",
+      "tibialis_posterior"
+    ],
     "rationale": {
-      "es": "En PSL la rodilla se gobierna desde el plano frontal: la estabilidad la dan el control del fémur (glúteo medio/mínimo durante la marcha, por el ángulo Q) y el seguimiento de la rótula (vasto medial), no solo la fuerza del cuádriceps. Se refuerzan los músculos que sostienen el seguimiento y la estabilidad frontal, comúnmente poco entrenados alrededor de la articulación.",
-      "en": "In PSL the knee is governed from the frontal plane: stability comes from femoral control (gluteus medius/minimus during gait, given the Q angle) and patellar tracking (vastus medialis), not just quad strength. We reinforce the muscles that support tracking and frontal-plane stability, commonly under-trained around the joint."
+      "es": "En este enfoque la rodilla se gobierna desde el plano frontal: la estabilidad la dan el control del fémur (glúteo medio/mínimo durante la marcha, por el ángulo Q) y el seguimiento de la rótula (vasto medial), no solo la fuerza del cuádriceps. Se refuerzan los músculos que sostienen el seguimiento y la estabilidad frontal, comúnmente poco entrenados alrededor de la articulación.",
+      "en": "In this approach the knee is governed from the frontal plane: stability comes from femoral control (gluteus medius/minimus during gait, given the Q angle) and patellar tracking (vastus medialis), not just quad strength. We reinforce the muscles that support tracking and frontal-plane stability, commonly under-trained around the joint."
     }
   },
   {
     "id": "shoulder",
-    "name": { "es": "Hombro", "en": "Shoulder" },
-    "strengthen": ["supraspinatus", "infraspinatus", "teres_minor", "subscapularis", "serratus_anterior", "trapezius"],
+    "name": {
+      "es": "Hombro",
+      "en": "Shoulder"
+    },
+    "strengthen": [
+      "supraspinatus",
+      "infraspinatus",
+      "teres_minor",
+      "subscapularis",
+      "serratus_anterior",
+      "trapezius"
+    ],
     "rationale": {
       "es": "El manguito rotador (SITS) funciona como estabilizador dinámico de la cabeza humeral más que por sus acciones aisladas, y el serrato anterior es el rotador ascendente subvalorado de la escápula. Se refuerzan estos estabilizadores más las fibras bajas del trapecio, que sostienen la articulación y suelen estar poco entrenados.",
       "en": "The rotator cuff (SITS) works as a dynamic humeral-head stabilizer more than through its isolated actions, and serratus anterior is the undervalued upward rotator of the scapula. We reinforce these stabilizers plus lower-fiber trapezius, which support the joint and are typically under-trained."
@@ -19,17 +38,36 @@
   },
   {
     "id": "low_back",
-    "name": { "es": "Zona lumbar baja", "en": "Low back" },
-    "strengthen": ["multifidus", "transversus_abdominis", "quadratus_lumborum", "erector_spinae", "latissimus_dorsi", "gluteus_maximus"],
+    "name": {
+      "es": "Zona lumbar baja",
+      "en": "Low back"
+    },
+    "strengthen": [
+      "multifidus",
+      "transversus_abdominis",
+      "quadratus_lumborum",
+      "erector_spinae",
+      "latissimus_dorsi",
+      "gluteus_maximus"
+    ],
     "rationale": {
-      "es": "En PSL la lumbar no se moviliza: se protege su rigidez funcional. Se refuerzan los estabilizadores profundos (multífidos, transverso, cuadrado lumbar, erectores) y la cadena fascial dorsal-glúteo mayor, que cruza la fascia toracolumbar y sostiene la columna durante bisagras y empujes.",
-      "en": "In PSL the lumbar spine is not mobilized: its functional stiffness is protected. We reinforce the deep stabilizers (multifidus, transversus abdominis, quadratus lumborum, erectors) and the lat-glute max fascial chain that crosses the thoracolumbar fascia and supports the spine during hinging and pulling."
+      "es": "En este enfoque la lumbar no se moviliza: se protege su rigidez funcional. Se refuerzan los estabilizadores profundos (multífidos, transverso, cuadrado lumbar, erectores) y la cadena fascial dorsal-glúteo mayor, que cruza la fascia toracolumbar y sostiene la columna durante bisagras y empujes.",
+      "en": "In this approach the lumbar spine is not mobilized: its functional stiffness is protected. We reinforce the deep stabilizers (multifidus, transversus abdominis, quadratus lumborum, erectors) and the lat-glute max fascial chain that crosses the thoracolumbar fascia and supports the spine during hinging and pulling."
     }
   },
   {
     "id": "hip",
-    "name": { "es": "Cadera", "en": "Hip" },
-    "strengthen": ["gluteus_medius", "gluteus_minimus", "deep_external_rotators", "gluteus_maximus", "iliopsoas"],
+    "name": {
+      "es": "Cadera",
+      "en": "Hip"
+    },
+    "strengthen": [
+      "gluteus_medius",
+      "gluteus_minimus",
+      "deep_external_rotators",
+      "gluteus_maximus",
+      "iliopsoas"
+    ],
     "rationale": {
       "es": "La cadera prioriza estabilidad y rotación interna sobre rango: el fallo típico es la estabilidad del glúteo medio en la marcha, no la fuerza del glúteo mayor. Se refuerzan glúteo medio/mínimo y rotadores externos profundos (control + RI, predictor de dolor lumbar según Cibulka), comúnmente poco entrenados.",
       "en": "The hip prioritizes stability and internal rotation over range: the typical failure is gluteus medius stability during gait, not gluteus maximus strength. We reinforce gluteus medius/minimus and the deep external rotators (control + IR, a low-back-pain predictor per Cibulka), commonly under-trained."
@@ -37,8 +75,17 @@
   },
   {
     "id": "elbow",
-    "name": { "es": "Codo", "en": "Elbow" },
-    "strengthen": ["wrist_finger_flexors", "wrist_finger_extensors", "brachioradialis", "pronator_teres", "supinator"],
+    "name": {
+      "es": "Codo",
+      "en": "Elbow"
+    },
+    "strengthen": [
+      "wrist_finger_flexors",
+      "wrist_finger_extensors",
+      "brachioradialis",
+      "pronator_teres",
+      "supinator"
+    ],
     "rationale": {
       "es": "Las molestias del codo suelen vivir en los epicóndilos, donde se anclan los flexores y extensores de muñeca y dedos; el braquiorradial integra el agarre y la posición del antebrazo. Se refuerzan estos músculos del agarre y de pronosupinación que sostienen la articulación y suelen estar poco entrenados.",
       "en": "Elbow complaints usually live at the epicondyles, where the wrist/finger flexors and extensors anchor; the brachioradialis integrates grip and forearm position. We reinforce these grip and pronation/supination muscles that support the joint and are typically under-trained."

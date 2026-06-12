@@ -1,16 +1,91 @@
 [
   {
     "id": "glenohumeral",
-    "name": { "es": "Hombro (glenohumeral)", "en": "Shoulder (glenohumeral)" },
-    "type": { "es": "Esférica (enartrosis)", "en": "Ball and socket" },
-    "bones": ["scapula", "humerus"],
+    "name": {
+      "es": "Hombro (glenohumeral)",
+      "en": "Shoulder (glenohumeral)"
+    },
+    "type": {
+      "es": "Esférica (enartrosis)",
+      "en": "Ball and socket"
+    },
+    "bones": [
+      "scapula",
+      "humerus"
+    ],
     "movements": [
-      { "name": { "es": "Flexión", "en": "Flexion" }, "romDeg": 180, "plane": "sagittal", "fixedBone": "scapula", "movingBones": ["humerus"] },
-      { "name": { "es": "Extensión", "en": "Extension" }, "romDeg": 60, "plane": "sagittal", "fixedBone": "scapula", "movingBones": ["humerus"] },
-      { "name": { "es": "Abducción", "en": "Abduction" }, "romDeg": 180, "plane": "frontal", "fixedBone": "scapula", "movingBones": ["humerus"] },
-      { "name": { "es": "Aducción", "en": "Adduction" }, "romDeg": 45, "plane": "frontal", "fixedBone": "scapula", "movingBones": ["humerus"] },
-      { "name": { "es": "Rotación interna", "en": "Internal rotation" }, "romDeg": 90, "plane": "transverse", "fixedBone": "scapula", "movingBones": ["humerus"] },
-      { "name": { "es": "Rotación externa", "en": "External rotation" }, "romDeg": 90, "plane": "transverse", "fixedBone": "scapula", "movingBones": ["humerus"] }
+      {
+        "name": {
+          "es": "Flexión",
+          "en": "Flexion"
+        },
+        "romDeg": 180,
+        "plane": "sagittal",
+        "fixedBone": "scapula",
+        "movingBones": [
+          "humerus"
+        ]
+      },
+      {
+        "name": {
+          "es": "Extensión",
+          "en": "Extension"
+        },
+        "romDeg": 60,
+        "plane": "sagittal",
+        "fixedBone": "scapula",
+        "movingBones": [
+          "humerus"
+        ]
+      },
+      {
+        "name": {
+          "es": "Abducción",
+          "en": "Abduction"
+        },
+        "romDeg": 180,
+        "plane": "frontal",
+        "fixedBone": "scapula",
+        "movingBones": [
+          "humerus"
+        ]
+      },
+      {
+        "name": {
+          "es": "Aducción",
+          "en": "Adduction"
+        },
+        "romDeg": 45,
+        "plane": "frontal",
+        "fixedBone": "scapula",
+        "movingBones": [
+          "humerus"
+        ]
+      },
+      {
+        "name": {
+          "es": "Rotación interna",
+          "en": "Internal rotation"
+        },
+        "romDeg": 90,
+        "plane": "transverse",
+        "fixedBone": "scapula",
+        "movingBones": [
+          "humerus"
+        ]
+      },
+      {
+        "name": {
+          "es": "Rotación externa",
+          "en": "External rotation"
+        },
+        "romDeg": 90,
+        "plane": "transverse",
+        "fixedBone": "scapula",
+        "movingBones": [
+          "humerus"
+        ]
+      }
     ],
     "coupledMotion": {
       "es": "La articulación más móvil del cuerpo y la menos estable: la cabeza humeral apenas se apoya en una glena poco profunda. Por cada ~2° de elevación del brazo, ~1° viene del húmero y ~1° de la rotación ascendente de la escápula (ritmo escápulo-humeral 2:1). El deltoides empuja la cabeza hacia arriba y el manguito la recentra: sin esa pareja, la cabeza migra y se pierde la posición.",
@@ -23,38 +98,147 @@
   },
   {
     "id": "scapulothoracic",
-    "name": { "es": "Escapulotorácica", "en": "Scapulothoracic" },
-    "type": { "es": "Articulación funcional (deslizamiento sobre la caja)", "en": "Functional joint (gliding on the rib cage)" },
-    "bones": ["scapula", "ribs"],
+    "name": {
+      "es": "Escapulotorácica",
+      "en": "Scapulothoracic"
+    },
+    "type": {
+      "es": "Articulación funcional (deslizamiento sobre la caja)",
+      "en": "Functional joint (gliding on the rib cage)"
+    },
+    "bones": [
+      "scapula",
+      "ribs"
+    ],
     "movements": [
-      { "name": { "es": "Elevación", "en": "Elevation" }, "romDeg": 60, "plane": "frontal", "fixedBone": "ribs", "movingBones": ["scapula"] },
-      { "name": { "es": "Depresión", "en": "Depression" }, "romDeg": 10, "plane": "frontal", "fixedBone": "ribs", "movingBones": ["scapula"] },
-      { "name": { "es": "Protracción", "en": "Protraction" }, "romDeg": 40, "plane": "transverse", "fixedBone": "ribs", "movingBones": ["scapula"] },
-      { "name": { "es": "Retracción", "en": "Retraction" }, "romDeg": 25, "plane": "transverse", "fixedBone": "ribs", "movingBones": ["scapula"] },
-      { "name": { "es": "Rotación ascendente", "en": "Upward rotation" }, "romDeg": 60, "plane": "frontal", "fixedBone": "ribs", "movingBones": ["scapula"] },
-      { "name": { "es": "Rotación descendente", "en": "Downward rotation" }, "romDeg": 30, "plane": "frontal", "fixedBone": "ribs", "movingBones": ["scapula"] }
+      {
+        "name": {
+          "es": "Elevación",
+          "en": "Elevation"
+        },
+        "romDeg": 60,
+        "plane": "frontal",
+        "fixedBone": "ribs",
+        "movingBones": [
+          "scapula"
+        ]
+      },
+      {
+        "name": {
+          "es": "Depresión",
+          "en": "Depression"
+        },
+        "romDeg": 10,
+        "plane": "frontal",
+        "fixedBone": "ribs",
+        "movingBones": [
+          "scapula"
+        ]
+      },
+      {
+        "name": {
+          "es": "Protracción",
+          "en": "Protraction"
+        },
+        "romDeg": 40,
+        "plane": "transverse",
+        "fixedBone": "ribs",
+        "movingBones": [
+          "scapula"
+        ]
+      },
+      {
+        "name": {
+          "es": "Retracción",
+          "en": "Retraction"
+        },
+        "romDeg": 25,
+        "plane": "transverse",
+        "fixedBone": "ribs",
+        "movingBones": [
+          "scapula"
+        ]
+      },
+      {
+        "name": {
+          "es": "Rotación ascendente",
+          "en": "Upward rotation"
+        },
+        "romDeg": 60,
+        "plane": "frontal",
+        "fixedBone": "ribs",
+        "movingBones": [
+          "scapula"
+        ]
+      },
+      {
+        "name": {
+          "es": "Rotación descendente",
+          "en": "Downward rotation"
+        },
+        "romDeg": 30,
+        "plane": "frontal",
+        "fixedBone": "ribs",
+        "movingBones": [
+          "scapula"
+        ]
+      }
     ],
     "coupledMotion": {
       "es": "No es una articulación verdadera: la escápula flota sobre la caja sujeta por músculos. Su movimiento se acopla obligatoriamente al del húmero (ritmo escápulo-humeral): al elevar el brazo, la escápula debe rotar hacia arriba o el rango se trunca. El serrato y el trapecio inferior la rotan arriba; romboides y elevador tiran al otro lado.",
       "en": "Not a true joint: the scapula floats on the rib cage held by muscles. Its motion is obligatorily coupled to the humerus (scapulohumeral rhythm): as the arm elevates, the scapula must rotate upward or the range is cut short. Serratus and lower trap rotate it up; rhomboids and levator pull the other way."
     },
     "notes": {
-      "es": "La estabilidad y libertad escapular son prerrequisito para entrenar el dorsal alargado (CH 10). Reparentar el brazo sin mover la escápula en el modelo se ve antinatural: el par debe animarse junto.",
-      "en": "Scapular stability and freedom are a prerequisite for training the lengthened lat (CH 10). Reparenting the arm without moving the scapula in the model looks unnatural: the pair must animate together."
+      "es": "La estabilidad y libertad escapular son prerrequisito para entrenar el dorsal alargado. Reparentar el brazo sin mover la escápula en el modelo se ve antinatural: el par debe animarse junto.",
+      "en": "Scapular stability and freedom are a prerequisite for training the lengthened lat. Reparenting the arm without moving the scapula in the model looks unnatural: the pair must animate together."
     }
   },
   {
     "id": "elbow",
-    "name": { "es": "Codo", "en": "Elbow" },
-    "type": { "es": "Bisagra (gínglimo)", "en": "Hinge" },
-    "bones": ["humerus", "ulna", "radius"],
+    "name": {
+      "es": "Codo",
+      "en": "Elbow"
+    },
+    "type": {
+      "es": "Bisagra (gínglimo)",
+      "en": "Hinge"
+    },
+    "bones": [
+      "humerus",
+      "ulna",
+      "radius"
+    ],
     "movements": [
-      { "name": { "es": "Flexión", "en": "Flexion" }, "romDeg": 145, "plane": "sagittal", "fixedBone": "humerus", "movingBones": ["ulna", "radius"] },
-      { "name": { "es": "Extensión", "en": "Extension" }, "romDeg": 0, "plane": "sagittal", "fixedBone": "humerus", "movingBones": ["ulna", "radius"] }
+      {
+        "name": {
+          "es": "Flexión",
+          "en": "Flexion"
+        },
+        "romDeg": 145,
+        "plane": "sagittal",
+        "fixedBone": "humerus",
+        "movingBones": [
+          "ulna",
+          "radius"
+        ]
+      },
+      {
+        "name": {
+          "es": "Extensión",
+          "en": "Extension"
+        },
+        "romDeg": 0,
+        "plane": "sagittal",
+        "fixedBone": "humerus",
+        "movingBones": [
+          "ulna",
+          "radius"
+        ]
+      }
     ],
     "coupledMotion": {
-      "es": "Bisagra de un solo plano: solo flexiona y extiende. La posición de la muñeca no cambia su mecánica (CH 12), por eso cambiar el agarre no 'activa otra cabeza' del tríceps. Lo que sí varía con el agarre es qué flexor lidera, porque eso ocurre en la articulación radioulnar, no aquí.",
-      "en": "A single-plane hinge: it only flexes and extends. Wrist position doesn't change its mechanics (CH 12), which is why changing grip doesn't 'activate a different triceps head'. What does change with grip is which flexor leads, because that happens at the radioulnar joint, not here."
+      "es": "Bisagra de un solo plano: solo flexiona y extiende. La posición de la muñeca no cambia su mecánica, por eso cambiar el agarre no 'activa otra cabeza' del tríceps. Lo que sí varía con el agarre es qué flexor lidera, porque eso ocurre en la articulación radioulnar, no aquí.",
+      "en": "A single-plane hinge: it only flexes and extends. Wrist position doesn't change its mechanics, which is why changing grip doesn't 'activate a different triceps head'. What does change with grip is which flexor leads, because that happens at the radioulnar joint, not here."
     },
     "notes": {
       "es": "En el modelo, el codo solo debe rotar en un eje; cualquier desviación lateral se vería como error. El olécranon del cúbito es el tope de extensión.",
@@ -63,12 +247,43 @@
   },
   {
     "id": "radioulnar",
-    "name": { "es": "Radioulnar (prono-supinación)", "en": "Radioulnar (pronation-supination)" },
-    "type": { "es": "Trocoide (pivote)", "en": "Pivot" },
-    "bones": ["radius", "ulna"],
+    "name": {
+      "es": "Radioulnar (prono-supinación)",
+      "en": "Radioulnar (pronation-supination)"
+    },
+    "type": {
+      "es": "Trocoide (pivote)",
+      "en": "Pivot"
+    },
+    "bones": [
+      "radius",
+      "ulna"
+    ],
     "movements": [
-      { "name": { "es": "Pronación", "en": "Pronation" }, "romDeg": 80, "plane": "transverse", "fixedBone": "ulna", "movingBones": ["radius"] },
-      { "name": { "es": "Supinación", "en": "Supination" }, "romDeg": 85, "plane": "transverse", "fixedBone": "ulna", "movingBones": ["radius"] }
+      {
+        "name": {
+          "es": "Pronación",
+          "en": "Pronation"
+        },
+        "romDeg": 80,
+        "plane": "transverse",
+        "fixedBone": "ulna",
+        "movingBones": [
+          "radius"
+        ]
+      },
+      {
+        "name": {
+          "es": "Supinación",
+          "en": "Supination"
+        },
+        "romDeg": 85,
+        "plane": "transverse",
+        "fixedBone": "ulna",
+        "movingBones": [
+          "radius"
+        ]
+      }
     ],
     "coupledMotion": {
       "es": "Aquí el radio rota sobre el cúbito fijo: es el giro del antebrazo. Esta rotación decide la palanca de los flexores de codo: en supinación el bíceps tiene ventaja; en pronación la pierde y el braquiorradial y el braquial lideran. Por eso el curl invertido 'pesa menos' sin que el músculo sea más débil.",
@@ -81,14 +296,68 @@
   },
   {
     "id": "wrist",
-    "name": { "es": "Muñeca", "en": "Wrist" },
-    "type": { "es": "Condílea (elipsoidea)", "en": "Condyloid (ellipsoidal)" },
-    "bones": ["radius", "ulna", "carpals"],
+    "name": {
+      "es": "Muñeca",
+      "en": "Wrist"
+    },
+    "type": {
+      "es": "Condílea (elipsoidea)",
+      "en": "Condyloid (ellipsoidal)"
+    },
+    "bones": [
+      "radius",
+      "ulna",
+      "carpals"
+    ],
     "movements": [
-      { "name": { "es": "Flexión", "en": "Flexion" }, "romDeg": 80, "plane": "sagittal", "fixedBone": "radius", "movingBones": ["carpals"] },
-      { "name": { "es": "Extensión", "en": "Extension" }, "romDeg": 70, "plane": "sagittal", "fixedBone": "radius", "movingBones": ["carpals"] },
-      { "name": { "es": "Desviación radial", "en": "Radial deviation" }, "romDeg": 20, "plane": "frontal", "fixedBone": "radius", "movingBones": ["carpals"] },
-      { "name": { "es": "Desviación cubital", "en": "Ulnar deviation" }, "romDeg": 30, "plane": "frontal", "fixedBone": "radius", "movingBones": ["carpals"] }
+      {
+        "name": {
+          "es": "Flexión",
+          "en": "Flexion"
+        },
+        "romDeg": 80,
+        "plane": "sagittal",
+        "fixedBone": "radius",
+        "movingBones": [
+          "carpals"
+        ]
+      },
+      {
+        "name": {
+          "es": "Extensión",
+          "en": "Extension"
+        },
+        "romDeg": 70,
+        "plane": "sagittal",
+        "fixedBone": "radius",
+        "movingBones": [
+          "carpals"
+        ]
+      },
+      {
+        "name": {
+          "es": "Desviación radial",
+          "en": "Radial deviation"
+        },
+        "romDeg": 20,
+        "plane": "frontal",
+        "fixedBone": "radius",
+        "movingBones": [
+          "carpals"
+        ]
+      },
+      {
+        "name": {
+          "es": "Desviación cubital",
+          "en": "Ulnar deviation"
+        },
+        "romDeg": 30,
+        "plane": "frontal",
+        "fixedBone": "radius",
+        "movingBones": [
+          "carpals"
+        ]
+      }
     ],
     "coupledMotion": {
       "es": "Articulación de dos planos cuyo control es sobre todo muscular. En posiciones de carga sobre la mano, la muñeca se co-contrae (flexores y extensores juntos) para fijarse en extensión; ese apilamiento estable es lo que permite transmitir fuerza sin molestia.",
@@ -101,36 +370,170 @@
   },
   {
     "id": "hip",
-    "name": { "es": "Cadera", "en": "Hip" },
-    "type": { "es": "Esférica (enartrosis)", "en": "Ball and socket" },
-    "bones": ["hip_bone", "femur"],
+    "name": {
+      "es": "Cadera",
+      "en": "Hip"
+    },
+    "type": {
+      "es": "Esférica (enartrosis)",
+      "en": "Ball and socket"
+    },
+    "bones": [
+      "hip_bone",
+      "femur"
+    ],
     "movements": [
-      { "name": { "es": "Flexión", "en": "Flexion" }, "romDeg": 120, "plane": "sagittal", "fixedBone": "hip_bone", "movingBones": ["femur"] },
-      { "name": { "es": "Extensión", "en": "Extension" }, "romDeg": 20, "plane": "sagittal", "fixedBone": "hip_bone", "movingBones": ["femur"] },
-      { "name": { "es": "Abducción", "en": "Abduction" }, "romDeg": 45, "plane": "frontal", "fixedBone": "hip_bone", "movingBones": ["femur"] },
-      { "name": { "es": "Aducción", "en": "Adduction" }, "romDeg": 30, "plane": "frontal", "fixedBone": "hip_bone", "movingBones": ["femur"] },
-      { "name": { "es": "Rotación interna", "en": "Internal rotation" }, "romDeg": 40, "plane": "transverse", "fixedBone": "hip_bone", "movingBones": ["femur"] },
-      { "name": { "es": "Rotación externa", "en": "External rotation" }, "romDeg": 45, "plane": "transverse", "fixedBone": "hip_bone", "movingBones": ["femur"] }
+      {
+        "name": {
+          "es": "Flexión",
+          "en": "Flexion"
+        },
+        "romDeg": 120,
+        "plane": "sagittal",
+        "fixedBone": "hip_bone",
+        "movingBones": [
+          "femur"
+        ]
+      },
+      {
+        "name": {
+          "es": "Extensión",
+          "en": "Extension"
+        },
+        "romDeg": 20,
+        "plane": "sagittal",
+        "fixedBone": "hip_bone",
+        "movingBones": [
+          "femur"
+        ]
+      },
+      {
+        "name": {
+          "es": "Abducción",
+          "en": "Abduction"
+        },
+        "romDeg": 45,
+        "plane": "frontal",
+        "fixedBone": "hip_bone",
+        "movingBones": [
+          "femur"
+        ]
+      },
+      {
+        "name": {
+          "es": "Aducción",
+          "en": "Adduction"
+        },
+        "romDeg": 30,
+        "plane": "frontal",
+        "fixedBone": "hip_bone",
+        "movingBones": [
+          "femur"
+        ]
+      },
+      {
+        "name": {
+          "es": "Rotación interna",
+          "en": "Internal rotation"
+        },
+        "romDeg": 40,
+        "plane": "transverse",
+        "fixedBone": "hip_bone",
+        "movingBones": [
+          "femur"
+        ]
+      },
+      {
+        "name": {
+          "es": "Rotación externa",
+          "en": "External rotation"
+        },
+        "romDeg": 45,
+        "plane": "transverse",
+        "fixedBone": "hip_bone",
+        "movingBones": [
+          "femur"
+        ]
+      }
     ],
     "coupledMotion": {
       "es": "Esférica como el hombro pero hecha para carga, no para rango: el acetábulo es profundo y estable. La báscula pélvica acopla la cadera con la columna lumbar; en flexión profunda de cadera, si la pelvis bascula en posterior, la lumbar se flexiona (el 'butt wink'). La estructura individual del acetábulo decide el mejor stance, por eso no hay una sentadilla única para todos.",
       "en": "Ball and socket like the shoulder but built for load, not range: the socket is deep and stable. Pelvic tilt couples the hip with the lumbar spine; in deep hip flexion, if the pelvis tilts posteriorly, the low back flexes (the 'butt wink'). Individual acetabular structure decides the best stance, which is why there's no one squat for everyone."
     },
     "notes": {
-      "es": "La 'debilidad de glúteo' suele ser inestabilidad de glúteo medio (CH 4), no falta de fuerza del mayor. La báscula anterior excesiva resta eficacia al glúteo mayor (CH 16).",
-      "en": "'Glute weakness' is usually gluteus medius instability (CH 4), not max weakness. Excessive anterior tilt reduces glute max efficiency (CH 16)."
+      "es": "La 'debilidad de glúteo' suele ser inestabilidad de glúteo medio, no falta de fuerza del mayor. La báscula anterior excesiva resta eficacia al glúteo mayor.",
+      "en": "'Glute weakness' is usually gluteus medius instability, not max weakness. Excessive anterior tilt reduces glute max efficiency."
     }
   },
   {
     "id": "knee",
-    "name": { "es": "Rodilla", "en": "Knee" },
-    "type": { "es": "Bisagra modificada", "en": "Modified hinge" },
-    "bones": ["femur", "tibia", "patella", "fibula"],
+    "name": {
+      "es": "Rodilla",
+      "en": "Knee"
+    },
+    "type": {
+      "es": "Bisagra modificada",
+      "en": "Modified hinge"
+    },
+    "bones": [
+      "femur",
+      "tibia",
+      "patella",
+      "fibula"
+    ],
     "movements": [
-      { "name": { "es": "Flexión", "en": "Flexion" }, "romDeg": 140, "plane": "sagittal", "fixedBone": "femur", "movingBones": ["tibia", "fibula", "patella"] },
-      { "name": { "es": "Extensión", "en": "Extension" }, "romDeg": 0, "plane": "sagittal", "fixedBone": "femur", "movingBones": ["tibia", "fibula", "patella"] },
-      { "name": { "es": "Rotación interna (rodilla flexionada)", "en": "Internal rotation (knee flexed)" }, "romDeg": 10, "plane": "transverse", "fixedBone": "femur", "movingBones": ["tibia"] },
-      { "name": { "es": "Rotación externa (rodilla flexionada)", "en": "External rotation (knee flexed)" }, "romDeg": 30, "plane": "transverse", "fixedBone": "femur", "movingBones": ["tibia"] }
+      {
+        "name": {
+          "es": "Flexión",
+          "en": "Flexion"
+        },
+        "romDeg": 140,
+        "plane": "sagittal",
+        "fixedBone": "femur",
+        "movingBones": [
+          "tibia",
+          "fibula",
+          "patella"
+        ]
+      },
+      {
+        "name": {
+          "es": "Extensión",
+          "en": "Extension"
+        },
+        "romDeg": 0,
+        "plane": "sagittal",
+        "fixedBone": "femur",
+        "movingBones": [
+          "tibia",
+          "fibula",
+          "patella"
+        ]
+      },
+      {
+        "name": {
+          "es": "Rotación interna (rodilla flexionada)",
+          "en": "Internal rotation (knee flexed)"
+        },
+        "romDeg": 10,
+        "plane": "transverse",
+        "fixedBone": "femur",
+        "movingBones": [
+          "tibia"
+        ]
+      },
+      {
+        "name": {
+          "es": "Rotación externa (rodilla flexionada)",
+          "en": "External rotation (knee flexed)"
+        },
+        "romDeg": 30,
+        "plane": "transverse",
+        "fixedBone": "femur",
+        "movingBones": [
+          "tibia"
+        ]
+      }
     ],
     "coupledMotion": {
       "es": "La rótula se desliza por el surco femoral aumentando la palanca del cuádriceps; en extensión terminal la tibia rota externamente unos grados para 'bloquear' la rodilla (mecanismo de screw-home), y debe rotar adentro para desbloquearla antes de flexionar. La rotación de la tibia solo está disponible con la rodilla flexionada.",
@@ -143,14 +546,68 @@
   },
   {
     "id": "ankle",
-    "name": { "es": "Tobillo", "en": "Ankle" },
-    "type": { "es": "Bisagra (gínglimo)", "en": "Hinge" },
-    "bones": ["tibia", "fibula", "tarsals"],
+    "name": {
+      "es": "Tobillo",
+      "en": "Ankle"
+    },
+    "type": {
+      "es": "Bisagra (gínglimo)",
+      "en": "Hinge"
+    },
+    "bones": [
+      "tibia",
+      "fibula",
+      "tarsals"
+    ],
     "movements": [
-      { "name": { "es": "Dorsiflexión", "en": "Dorsiflexion" }, "romDeg": 20, "plane": "sagittal", "fixedBone": "tibia", "movingBones": ["tarsals"] },
-      { "name": { "es": "Flexión plantar", "en": "Plantarflexion" }, "romDeg": 50, "plane": "sagittal", "fixedBone": "tibia", "movingBones": ["tarsals"] },
-      { "name": { "es": "Inversión", "en": "Inversion" }, "romDeg": 35, "plane": "frontal", "fixedBone": "tibia", "movingBones": ["tarsals"] },
-      { "name": { "es": "Eversión", "en": "Eversion" }, "romDeg": 15, "plane": "frontal", "fixedBone": "tibia", "movingBones": ["tarsals"] }
+      {
+        "name": {
+          "es": "Dorsiflexión",
+          "en": "Dorsiflexion"
+        },
+        "romDeg": 20,
+        "plane": "sagittal",
+        "fixedBone": "tibia",
+        "movingBones": [
+          "tarsals"
+        ]
+      },
+      {
+        "name": {
+          "es": "Flexión plantar",
+          "en": "Plantarflexion"
+        },
+        "romDeg": 50,
+        "plane": "sagittal",
+        "fixedBone": "tibia",
+        "movingBones": [
+          "tarsals"
+        ]
+      },
+      {
+        "name": {
+          "es": "Inversión",
+          "en": "Inversion"
+        },
+        "romDeg": 35,
+        "plane": "frontal",
+        "fixedBone": "tibia",
+        "movingBones": [
+          "tarsals"
+        ]
+      },
+      {
+        "name": {
+          "es": "Eversión",
+          "en": "Eversion"
+        },
+        "romDeg": 15,
+        "plane": "frontal",
+        "fixedBone": "tibia",
+        "movingBones": [
+          "tarsals"
+        ]
+      }
     ],
     "coupledMotion": {
       "es": "La dorsiflexión decide cuánto avanza la rodilla sobre el pie, y con ello la profundidad de sentadilla. La inversión/eversión se acopla con el resto del pie (la pronación combina dorsiflexión, eversión y abducción); el maléolo del peroné es el tope óseo lateral que frena la inversión, y los peroneos el freno activo.",
@@ -163,14 +620,72 @@
   },
   {
     "id": "cervical_spine",
-    "name": { "es": "Columna cervical", "en": "Cervical spine" },
-    "type": { "es": "Conjunto de articulaciones vertebrales", "en": "Series of vertebral joints" },
-    "bones": ["skull", "cervical_vertebrae", "thoracic_vertebrae"],
+    "name": {
+      "es": "Columna cervical",
+      "en": "Cervical spine"
+    },
+    "type": {
+      "es": "Conjunto de articulaciones vertebrales",
+      "en": "Series of vertebral joints"
+    },
+    "bones": [
+      "skull",
+      "cervical_vertebrae",
+      "thoracic_vertebrae"
+    ],
     "movements": [
-      { "name": { "es": "Flexión", "en": "Flexion" }, "romDeg": 50, "plane": "sagittal", "fixedBone": "thoracic_vertebrae", "movingBones": ["cervical_vertebrae", "skull"] },
-      { "name": { "es": "Extensión", "en": "Extension" }, "romDeg": 60, "plane": "sagittal", "fixedBone": "thoracic_vertebrae", "movingBones": ["cervical_vertebrae", "skull"] },
-      { "name": { "es": "Flexión lateral", "en": "Lateral flexion" }, "romDeg": 45, "plane": "frontal", "fixedBone": "thoracic_vertebrae", "movingBones": ["cervical_vertebrae", "skull"] },
-      { "name": { "es": "Rotación", "en": "Rotation" }, "romDeg": 80, "plane": "transverse", "fixedBone": "thoracic_vertebrae", "movingBones": ["cervical_vertebrae", "skull"] }
+      {
+        "name": {
+          "es": "Flexión",
+          "en": "Flexion"
+        },
+        "romDeg": 50,
+        "plane": "sagittal",
+        "fixedBone": "thoracic_vertebrae",
+        "movingBones": [
+          "cervical_vertebrae",
+          "skull"
+        ]
+      },
+      {
+        "name": {
+          "es": "Extensión",
+          "en": "Extension"
+        },
+        "romDeg": 60,
+        "plane": "sagittal",
+        "fixedBone": "thoracic_vertebrae",
+        "movingBones": [
+          "cervical_vertebrae",
+          "skull"
+        ]
+      },
+      {
+        "name": {
+          "es": "Flexión lateral",
+          "en": "Lateral flexion"
+        },
+        "romDeg": 45,
+        "plane": "frontal",
+        "fixedBone": "thoracic_vertebrae",
+        "movingBones": [
+          "cervical_vertebrae",
+          "skull"
+        ]
+      },
+      {
+        "name": {
+          "es": "Rotación",
+          "en": "Rotation"
+        },
+        "romDeg": 80,
+        "plane": "transverse",
+        "fixedBone": "thoracic_vertebrae",
+        "movingBones": [
+          "cervical_vertebrae",
+          "skull"
+        ]
+      }
     ],
     "coupledMotion": {
       "es": "El segmento más móvil de la columna, pero diseñado para orientar la cabeza, no para cargar. Su posición se acopla a la torácica: una torácica flexionada empuja la cabeza adelante y obliga a la cervical a extenderse para compensar. Buena extensión torácica descarga al cuello.",
@@ -183,38 +698,147 @@
   },
   {
     "id": "thoracic_spine",
-    "name": { "es": "Columna torácica", "en": "Thoracic spine" },
-    "type": { "es": "Conjunto de articulaciones vertebrales", "en": "Series of vertebral joints" },
-    "bones": ["thoracic_vertebrae", "cervical_vertebrae", "lumbar_vertebrae", "ribs"],
+    "name": {
+      "es": "Columna torácica",
+      "en": "Thoracic spine"
+    },
+    "type": {
+      "es": "Conjunto de articulaciones vertebrales",
+      "en": "Series of vertebral joints"
+    },
+    "bones": [
+      "thoracic_vertebrae",
+      "cervical_vertebrae",
+      "lumbar_vertebrae",
+      "ribs"
+    ],
     "movements": [
-      { "name": { "es": "Flexión", "en": "Flexion" }, "romDeg": 35, "plane": "sagittal", "fixedBone": "lumbar_vertebrae", "movingBones": ["thoracic_vertebrae"] },
-      { "name": { "es": "Extensión", "en": "Extension" }, "romDeg": 25, "plane": "sagittal", "fixedBone": "lumbar_vertebrae", "movingBones": ["thoracic_vertebrae"] },
-      { "name": { "es": "Flexión lateral", "en": "Lateral flexion" }, "romDeg": 25, "plane": "frontal", "fixedBone": "lumbar_vertebrae", "movingBones": ["thoracic_vertebrae"] },
-      { "name": { "es": "Rotación", "en": "Rotation" }, "romDeg": 35, "plane": "transverse", "fixedBone": "lumbar_vertebrae", "movingBones": ["thoracic_vertebrae"] }
+      {
+        "name": {
+          "es": "Flexión",
+          "en": "Flexion"
+        },
+        "romDeg": 35,
+        "plane": "sagittal",
+        "fixedBone": "lumbar_vertebrae",
+        "movingBones": [
+          "thoracic_vertebrae"
+        ]
+      },
+      {
+        "name": {
+          "es": "Extensión",
+          "en": "Extension"
+        },
+        "romDeg": 25,
+        "plane": "sagittal",
+        "fixedBone": "lumbar_vertebrae",
+        "movingBones": [
+          "thoracic_vertebrae"
+        ]
+      },
+      {
+        "name": {
+          "es": "Flexión lateral",
+          "en": "Lateral flexion"
+        },
+        "romDeg": 25,
+        "plane": "frontal",
+        "fixedBone": "lumbar_vertebrae",
+        "movingBones": [
+          "thoracic_vertebrae"
+        ]
+      },
+      {
+        "name": {
+          "es": "Rotación",
+          "en": "Rotation"
+        },
+        "romDeg": 35,
+        "plane": "transverse",
+        "fixedBone": "lumbar_vertebrae",
+        "movingBones": [
+          "thoracic_vertebrae"
+        ]
+      }
     ],
     "coupledMotion": {
       "es": "El segmento de la columna hecho para rotar. Su rotación es prerrequisito del alcance overhead: si la torácica no gira ni extiende, el rango se pide prestado a la lumbar (que no debe darlo) o al hombro. La caja torácica articula aquí, así que la respiración y la posición costal se acoplan a este segmento.",
       "en": "The spinal segment built to rotate. Its rotation is a prerequisite for overhead reach: if the thoracic won't rotate or extend, the range gets borrowed from the lumbar (which shouldn't give it) or the shoulder. The rib cage articulates here, so breathing and rib position couple to this segment."
     },
     "notes": {
-      "es": "La movilidad torácica habilita entrenar el dorsal alargado (CH 10) y protege a cuello y lumbar de compensar. Es de los primeros sitios a revisar cuando falta rango overhead.",
-      "en": "Thoracic mobility enables training the lengthened lat (CH 10) and protects the neck and low back from compensating. It's one of the first places to check when overhead range is missing."
+      "es": "La movilidad torácica habilita entrenar el dorsal alargado y protege a cuello y lumbar de compensar. Es de los primeros sitios a revisar cuando falta rango overhead.",
+      "en": "Thoracic mobility enables training the lengthened lat and protects the neck and low back from compensating. It's one of the first places to check when overhead range is missing."
     }
   },
   {
     "id": "lumbar_spine",
-    "name": { "es": "Columna lumbar", "en": "Lumbar spine" },
-    "type": { "es": "Conjunto de articulaciones vertebrales", "en": "Series of vertebral joints" },
-    "bones": ["lumbar_vertebrae", "thoracic_vertebrae", "sacrum"],
+    "name": {
+      "es": "Columna lumbar",
+      "en": "Lumbar spine"
+    },
+    "type": {
+      "es": "Conjunto de articulaciones vertebrales",
+      "en": "Series of vertebral joints"
+    },
+    "bones": [
+      "lumbar_vertebrae",
+      "thoracic_vertebrae",
+      "sacrum"
+    ],
     "movements": [
-      { "name": { "es": "Flexión", "en": "Flexion" }, "romDeg": 50, "plane": "sagittal", "fixedBone": "sacrum", "movingBones": ["lumbar_vertebrae"] },
-      { "name": { "es": "Extensión", "en": "Extension" }, "romDeg": 25, "plane": "sagittal", "fixedBone": "sacrum", "movingBones": ["lumbar_vertebrae"] },
-      { "name": { "es": "Flexión lateral", "en": "Lateral flexion" }, "romDeg": 20, "plane": "frontal", "fixedBone": "sacrum", "movingBones": ["lumbar_vertebrae"] },
-      { "name": { "es": "Rotación", "en": "Rotation" }, "romDeg": 5, "plane": "transverse", "fixedBone": "sacrum", "movingBones": ["lumbar_vertebrae"] }
+      {
+        "name": {
+          "es": "Flexión",
+          "en": "Flexion"
+        },
+        "romDeg": 50,
+        "plane": "sagittal",
+        "fixedBone": "sacrum",
+        "movingBones": [
+          "lumbar_vertebrae"
+        ]
+      },
+      {
+        "name": {
+          "es": "Extensión",
+          "en": "Extension"
+        },
+        "romDeg": 25,
+        "plane": "sagittal",
+        "fixedBone": "sacrum",
+        "movingBones": [
+          "lumbar_vertebrae"
+        ]
+      },
+      {
+        "name": {
+          "es": "Flexión lateral",
+          "en": "Lateral flexion"
+        },
+        "romDeg": 20,
+        "plane": "frontal",
+        "fixedBone": "sacrum",
+        "movingBones": [
+          "lumbar_vertebrae"
+        ]
+      },
+      {
+        "name": {
+          "es": "Rotación",
+          "en": "Rotation"
+        },
+        "romDeg": 5,
+        "plane": "transverse",
+        "fixedBone": "sacrum",
+        "movingBones": [
+          "lumbar_vertebrae"
+        ]
+      }
     ],
     "coupledMotion": {
-      "es": "El segmento de carga: robusto pero con muy poca rotación de diseño (de ahí los ~5°). Se acopla con la pelvis por la báscula: extensión lumbar acompaña báscula anterior, flexión lumbar acompaña báscula posterior. Su trabajo bajo carga es resistir el movimiento, no producirlo: estabilizar, no fortalecer (CH 7).",
-      "en": "The load-bearing segment: robust but with very little rotation by design (hence the ~5°). It couples with the pelvis via tilt: lumbar extension accompanies anterior tilt, lumbar flexion accompanies posterior tilt. Its job under load is to resist movement, not produce it: stabilize, not strengthen (CH 7)."
+      "es": "El segmento de carga: robusto pero con muy poca rotación de diseño (de ahí los ~5°). Se acopla con la pelvis por la báscula: extensión lumbar acompaña báscula anterior, flexión lumbar acompaña báscula posterior. Su trabajo bajo carga es resistir el movimiento, no producirlo: estabilizar, no fortalecer.",
+      "en": "The load-bearing segment: robust but with very little rotation by design (hence the ~5°). It couples with the pelvis via tilt: lumbar extension accompanies anterior tilt, lumbar flexion accompanies posterior tilt. Its job under load is to resist movement, not produce it: stabilize, not strengthen."
     },
     "notes": {
       "es": "Buscar 'fuerza de espalda baja' con extensiones cargadas fortalece algo que debe estabilizarse. Cuando dorsal y glúteo funcionan, la lumbar deja de compensar. En el modelo, la rotación lumbar debe ser mínima: forzarla se ve y se siente mal.",

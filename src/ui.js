@@ -201,6 +201,16 @@ export function renderJoint(joint, structById) {
   </div>`;
 }
 
+// ── Acerca de / disclaimer de fuentes ────────────────────────────────────────
+export function renderAbout() {
+  $('#info').innerHTML = `<div class="muscle-card">
+    <h2>${t('about_title')}</h2>
+    <p style="font-size:13px;line-height:1.6;margin:8px 0 0">${escapeHtml(t('about_content'))}</p>
+    <div class="highlight-summary" style="margin-top:12px">${escapeHtml(t('about_model'))}</div>
+    <p style="font-size:12px;color:var(--text-dim);margin-top:12px">${escapeHtml(t('about_original'))}</p>
+  </div>`;
+}
+
 // ── Lista lateral (modo Explore) ─────────────────────────────────────────────
 export function buildList(structures, linkedIds, onPick) {
   const list = $('#list');
@@ -351,6 +361,7 @@ export function wireControls(opts) {
   };
   $('#scrim').onclick = () => { closeDrawer(); closeInfoPanel(); };
   $('#sheet-close').onclick = closeInfoPanel;
+  $('#about-link').onclick = () => { renderAbout(); openInfoPanel(); };
 
   return { repaintViewBtn: paintViewBtn, setMode, getMode: () => currentMode, closeDrawer };
 }
