@@ -73,6 +73,12 @@ a:hover { text-decoration: underline; }
 .feel-box { margin-top: 14px; background: rgba(198,255,61,0.1); border-left: 3px solid var(--accent); padding: 11px 13px; border-radius: 0 4px 4px 0; }
 .feel-box strong { color: var(--accent); display: block; font-size: 12px; margin-bottom: 4px; }
 .feel-box span { font-size: 13px; line-height: 1.5; }
+.mov-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.mov-row { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border: 1px solid var(--border); padding: 6px 10px; border-radius: 4px; }
+.mov-arc { flex-shrink: 0; }
+.mov-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.mov-body strong { font-size: 13px; }
+.mov-meta { font-size: 11px; color: var(--text-dim); }
 .ctrl-slider { display: inline-flex; align-items: center; gap: 6px; background: rgba(20,20,20,0.85);
   color: var(--text-dim); border: 1px solid var(--border); padding: 4px 9px; border-radius: 4px; font-size: 12px; }
 .ctrl-slider input[type=range] { width: 84px; accent-color: var(--accent); }

@@ -77,7 +77,16 @@ const STRINGS = {
     target_muscle: 'Músculo objetivo',
     loaded_zone: 'Zona cargada',
     notes_label: 'Notas',
-    articulates: 'Articula con'
+    articulates: 'Articula con',
+    mode_movement: 'Movimiento',
+    pick_movement: 'Elige una articulación para ver sus rangos y qué huesos se mueven.',
+    joint_type: 'Tipo',
+    range_of_motion: 'Rango de movimiento',
+    moves_label: 'mueve',
+    coupled_motion: 'Movimiento acoplado',
+    plane_sagittal: 'Sagital',
+    plane_frontal: 'Frontal',
+    plane_transverse: 'Transverso'
   },
   en: {
     tagline: 'Muscles, bones & ranges per exercise',
@@ -154,7 +163,16 @@ const STRINGS = {
     target_muscle: 'Target muscle',
     loaded_zone: 'Loaded zone',
     notes_label: 'Notes',
-    articulates: 'Articulates with'
+    articulates: 'Articulates with',
+    mode_movement: 'Movement',
+    pick_movement: 'Pick a joint to see its ranges and which bones move.',
+    joint_type: 'Type',
+    range_of_motion: 'Range of motion',
+    moves_label: 'moves',
+    coupled_motion: 'Coupled motion',
+    plane_sagittal: 'Sagittal',
+    plane_frontal: 'Frontal',
+    plane_transverse: 'Transverse'
   }
 };
 

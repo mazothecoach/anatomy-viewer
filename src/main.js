@@ -3,7 +3,7 @@ import { params, validLang } from './params.js';
 import { createViewer } from './viewer.js';
 import {
   renderInfo, clearInfo, buildList, setActiveListItem, applySearchFilter,
-  buildRegionTabs, renderHighlightSummary, renderMorphology, renderExercise, wireControls,
+  buildRegionTabs, renderHighlightSummary, renderMorphology, renderExercise, renderJoint, wireControls,
   setStatus, showEmpty, showProgress, applyStaticStrings, openInfoPanel
 } from './ui.js';
 import { setLang, t, tf } from './i18n.js';
@@ -14,6 +14,7 @@ import painZones from './data/painZones.json';
 import physiqueGoals from './data/physiqueGoals.json';
 import morphology from './data/morphology.json';
 import exercises from './data/exercises.json';
+import joints from './data/joints.json';
 
 // ── Datos ──────────────────────────────────────────────────────────────────
 const structures = [...muscles, ...bones];
@@ -98,8 +99,21 @@ function onPickExercise(ex) {
   renderExercise(ex, structById);
   openInfoPanel();
 }
+function setLayerUI(layer) {
+  document.getElementById('layer-muscle').classList.toggle('active', layer === 'muscle');
+  document.getElementById('layer-bone').classList.toggle('active', layer === 'bone');
+  viewer.setLayer(layer);
+}
+function onPickJoint(joint) {
+  setLayerUI('bone'); // mostrar el esqueleto para ver los huesos que se mueven
+  if (modelLoaded) viewer.highlightMany(joint.bones || []);
+  renderJoint(joint, structById);
+  openInfoPanel();
+}
 
 function onMode(mode) {
+  // Movimiento usa el esqueleto; los demás modos, los músculos.
+  setLayerUI(mode === 'movement' ? 'bone' : 'muscle');
   // al volver a Explorar, re-aplica el aislamiento de región si lo había
   if (mode === 'explore' && activeRegion) viewer.isolateRegion(s => s.region === activeRegion);
 }
@@ -131,10 +145,12 @@ const ui = wireControls({
   physiqueGoals,
   morphology,
   exercises,
+  joints,
   onPickPain,
   onPickPhysique,
   onPickMorphology,
   onPickExercise,
+  onPickJoint,
   onListPick
 });
 

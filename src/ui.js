@@ -128,9 +128,12 @@ function squatComparisonSVG(longLabel, shortLabel) {
 export function renderMorphology(item) {
   const info = $('#info');
   if (!item) { info.innerHTML = `<p class="placeholder">${t('pick_morphology')}</p>`; return; }
+  // La figura de sentadilla solo aplica al tema del fémur; otros temas van sin figura.
+  const fig = item.id === 'femur_length'
+    ? `<div class="morph-fig">${squatComparisonSVG(tf(item.long.label), tf(item.short.label))}</div>` : '';
   info.innerHTML = `<div class="muscle-card">
     <h2>${escapeHtml(tf(item.name))}</h2>
-    <div class="morph-fig">${squatComparisonSVG(tf(item.long.label), tf(item.short.label))}</div>
+    ${fig}
     <div class="highlight-summary">${escapeHtml(tf(item.summary))}</div>
     <dt class="hs-label" style="color:#c6ff3d">${escapeHtml(tf(item.long.label))}</dt>
     <dd style="font-size:13px;line-height:1.5;margin:3px 0 0">${escapeHtml(tf(item.long.note))}</dd>
@@ -158,6 +161,43 @@ export function renderExercise(ex, structById) {
       <dd><div class="zones">${zoneRow(zk, ZONE_LABEL[ex.loadedZone], 'cap_' + zk, target && target.forceCurve ? target.forceCurve[ex.loadedZone] : null)}</div></dd>` : ''}
     ${secondary ? `<dt class="hs-label">${t('muscles_highlighted')}</dt><div class="muscle-chips">${secondary}</div>` : ''}
     ${ex.whereToFeel ? `<div class="feel-box"><strong>${t('where_to_feel')}</strong><span>${escapeHtml(tf(ex.whereToFeel))}</span></div>` : ''}
+  </div>`;
+}
+
+// ── Movimiento: articulaciones (ROM + huesos que se mueven + acoplado) ───────
+const PLANE_KEY = { sagittal: 'plane_sagittal', frontal: 'plane_frontal', transverse: 'plane_transverse' };
+// Medidor de ángulo: rayo de referencia (0°) + rayo al valor del ROM + el número.
+function romArc(deg) {
+  const R = 32, cap = Math.min(deg, 180), rad = cap * Math.PI / 180;
+  const ex = (40 + R * Math.cos(rad)).toFixed(1), ey = (40 - R * Math.sin(rad)).toFixed(1);
+  return `<svg viewBox="0 0 80 50" width="64" height="40" aria-hidden="true">
+    <line x1="40" y1="40" x2="72" y2="40" stroke="#444" stroke-width="2"/>
+    <line x1="40" y1="40" x2="${ex}" y2="${ey}" stroke="#c6ff3d" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="40" cy="40" r="2.5" fill="#9a9a9a"/>
+    <text x="40" y="13" text-anchor="middle" fill="#c6ff3d" font-size="12" font-family="sans-serif">${deg}°</text>
+  </svg>`;
+}
+export function renderJoint(joint, structById) {
+  const info = $('#info');
+  const boneName = id => { const s = structById.get(id); return s ? tf(s.name) : id; };
+  const movs = (joint.movements || []).map(m => {
+    const moving = (m.movingBones || []).map(boneName).join(', ');
+    const plane = m.plane && PLANE_KEY[m.plane] ? t(PLANE_KEY[m.plane]) : (m.plane || '');
+    return `<div class="mov-row">
+      <div class="mov-arc">${romArc(m.romDeg)}</div>
+      <div class="mov-body">
+        <strong>${escapeHtml(tf(m.name))}</strong>
+        <span class="mov-meta">${escapeHtml(plane)}${moving ? ` · ${t('moves_label')}: ${escapeHtml(moving)}` : ''}</span>
+      </div>
+    </div>`;
+  }).join('');
+  info.innerHTML = `<div class="muscle-card">
+    <h2>${escapeHtml(tf(joint.name))}</h2>
+    ${joint.type ? `<dt class="hs-label">${t('joint_type')}</dt><dd style="font-size:13px;margin:2px 0 0">${escapeHtml(tf(joint.type))}</dd>` : ''}
+    <dt class="hs-label">${t('range_of_motion')}</dt>
+    <div class="mov-list">${movs}</div>
+    ${joint.coupledMotion ? `<div class="highlight-summary"><strong>${t('coupled_motion')}:</strong> ${escapeHtml(tf(joint.coupledMotion))}</div>` : ''}
+    ${joint.notes ? `<div class="psl-note coach-only">${escapeHtml(tf(joint.notes))}</div>` : ''}
   </div>`;
 }
 
@@ -237,8 +277,8 @@ function closeDrawer() { $('.left').classList.remove('open'); $('#scrim').classL
 export function wireControls(opts) {
   const {
     viewer, onLayer, onLang, initialMode,
-    onMode, onRegion, painZones, physiqueGoals, morphology, exercises,
-    onPickPain, onPickPhysique, onPickMorphology, onPickExercise, onListPick
+    onMode, onRegion, painZones, physiqueGoals, morphology, exercises, joints,
+    onPickPain, onPickPhysique, onPickMorphology, onPickExercise, onPickJoint, onListPick
   } = opts;
 
   // idioma
@@ -260,7 +300,7 @@ export function wireControls(opts) {
   let currentMode = 'explore';
   const modeBtns = {
     explore: $('#mode-explore'), exercise: $('#mode-exercise'), pain: $('#mode-pain'),
-    physique: $('#mode-physique'), morphology: $('#mode-morphology')
+    physique: $('#mode-physique'), morphology: $('#mode-morphology'), movement: $('#mode-movement')
   };
   function setMode(mode) {
     currentMode = mode;
@@ -278,6 +318,7 @@ export function wireControls(opts) {
       renderPickerList(morphology, 'pick_morphology', onPickMorphology);
       if (morphology && morphology.length) onPickMorphology(morphology[0]); // auto-muestra el 1°
     }
+    if (mode === 'movement') renderPickerList(joints, 'pick_movement', onPickJoint);
     onMode && onMode(mode);
   }
   modeBtns.explore.onclick = () => setMode('explore');
@@ -285,6 +326,7 @@ export function wireControls(opts) {
   modeBtns.pain.onclick = () => setMode('pain');
   modeBtns.physique.onclick = () => setMode('physique');
   modeBtns.morphology.onclick = () => setMode('morphology');
+  modeBtns.movement.onclick = () => setMode('movement');
 
   // capas músculo / hueso
   $('#layer-muscle').onclick = () => switchLayer('muscle');
