@@ -94,7 +94,7 @@ const STRINGS = {
     plane_frontal: 'Frontal',
     plane_transverse: 'Transverso',
     animate_label: 'Animar movimiento',
-    animate_hint: 'Mueve el pie: flexión plantar ↔ dorsiflexión',
+    animate_hint: 'Elige un movimiento arriba y mueve el slider (0° → límite del rango).',
     animate_loading: 'Cargando la pierna para animar…'
   },
   en: {
@@ -189,7 +189,7 @@ const STRINGS = {
     plane_frontal: 'Frontal',
     plane_transverse: 'Transverse',
     animate_label: 'Animate movement',
-    animate_hint: 'Move the foot: plantarflexion ↔ dorsiflexion',
+    animate_hint: 'Pick a movement above and move the slider (0° → end of range).',
     animate_loading: 'Loading the leg to animate…'
   }
 };

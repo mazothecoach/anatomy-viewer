@@ -109,9 +109,11 @@ function setLayerUI(layer) {
 }
 // Articulaciones animables (reparenteo sin rig, solo en la pierna sola).
 // Primer test: tobillo → el pie rota sobre la base de tibia/peroné.
+// signs por movimiento (orden de joints.json): dorsiflexión, flexión plantar, inversión, eversión
 const ARTICULABLE = {
-  ankle: { ref: ['tibia', 'fibula'], edge: 'min', axis: 'x' }
+  ankle: { ref: ['tibia', 'fibula'], edge: 'min', signs: [-1, 1, 1, -1] }
 };
+const planeAxis = p => (p === 'frontal' ? 'z' : (p === 'transverse' ? 'y' : 'x'));
 function loadLowerLimbThen(cb) {
   if (modelLoaded && modelSelect.value === 'models/lower-limb.glb' && !bothSides.checked) { cb(); return; }
   modelSelect.value = 'models/lower-limb.glb';
@@ -129,8 +131,22 @@ function onPickJoint(joint) {
       const refNames = art.ref.flatMap(id => (structById.get(id)?.meshNames || []));
       viewer.setupArticulation(refNames, art.edge);
       const sl = document.getElementById('joint-animate');
-      // negado: izquierda = flexión plantar (toes abajo), derecha = dorsiflexión (toes arriba)
-      if (sl) sl.oninput = e => viewer.setFlex(-Number(e.target.value), art.axis);
+      const movEls = document.querySelectorAll('#info .mov-sel');
+      let active = { axis: 'x', sign: 1, rom: 20 };
+      function selectMov(i) {
+        const m = joint.movements[i];
+        active = { axis: planeAxis(m.plane), sign: (art.signs && art.signs[i]) || 1, rom: m.romDeg };
+        movEls.forEach((el, j) => el.classList.toggle('active', j === i));
+        if (sl) { sl.max = active.rom; sl.value = 0; }
+        const mn = document.getElementById('anim-min'), mx = document.getElementById('anim-max');
+        if (mn) mn.textContent = '0°';
+        if (mx) mx.textContent = active.rom + '°';
+        viewer.setFlex(0, active.axis); // vuelve a neutral al cambiar de movimiento
+      }
+      movEls.forEach((el, i) => { el.onclick = () => selectMov(i); });
+      // slider: 0 (izquierda) → límite del rango del movimiento elegido (derecha)
+      if (sl) sl.oninput = e => viewer.setFlex(Number(e.target.value) * active.sign, active.axis);
+      if (movEls.length) selectMov(0); // por defecto, dorsiflexión
     });
     return;
   }

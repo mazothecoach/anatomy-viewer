@@ -180,16 +180,18 @@ function romArc(deg) {
 export function renderJoint(joint, structById, animate) {
   const info = $('#info');
   const boneName = id => { const s = structById.get(id); return s ? tf(s.name) : id; };
-  const movs = (joint.movements || []).map(m => {
+  const movs = (joint.movements || []).map((m, i) => {
     const moving = (m.movingBones || []).map(boneName).join(', ');
     const plane = m.plane && PLANE_KEY[m.plane] ? t(PLANE_KEY[m.plane]) : (m.plane || '');
-    return `<div class="mov-row">
+    const tag = animate ? 'button' : 'div';
+    const cls = animate ? 'mov-row mov-sel' : 'mov-row';
+    return `<${tag} class="${cls}"${animate ? ` data-mi="${i}"` : ''}>
       <div class="mov-arc">${romArc(m.romDeg)}</div>
       <div class="mov-body">
         <strong>${escapeHtml(tf(m.name))}</strong>
         <span class="mov-meta">${escapeHtml(plane)}${moving ? ` · ${t('moves_label')}: ${escapeHtml(moving)}` : ''}</span>
       </div>
-    </div>`;
+    </${tag}>`;
   }).join('');
   info.innerHTML = `<div class="muscle-card">
     <h2>${escapeHtml(tf(joint.name))}</h2>
@@ -197,8 +199,12 @@ export function renderJoint(joint, structById, animate) {
     <dt class="hs-label">${t('range_of_motion')}</dt>
     <div class="mov-list">${movs}</div>
     ${animate ? `<dt class="hs-label">${t('animate_label')}</dt>
-      <div class="animate-ctrl"><input type="range" id="joint-animate" min="-50" max="20" step="1" value="0" />
-      <span class="animate-hint">${t('animate_hint')}</span></div>` : ''}
+      <div class="animate-ctrl">
+        <div class="slider-row"><span class="slider-end" id="anim-min">0°</span>
+        <input type="range" id="joint-animate" min="0" max="20" step="1" value="0" />
+        <span class="slider-end" id="anim-max">20°</span></div>
+        <span class="animate-hint">${t('animate_hint')}</span>
+      </div>` : ''}
     ${joint.coupledMotion ? `<div class="highlight-summary"><strong>${t('coupled_motion')}:</strong> ${escapeHtml(tf(joint.coupledMotion))}</div>` : ''}
     ${joint.notes ? `<div class="psl-note coach-only">${escapeHtml(tf(joint.notes))}</div>` : ''}
   </div>`;
