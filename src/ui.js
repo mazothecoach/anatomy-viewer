@@ -53,6 +53,7 @@ export function renderInfo(struct, meshName) {
   if (struct.action) rows.push(`<dt>${t('action')}</dt><dd>${escapeHtml(tf(struct.action))}</dd>`);
   if (struct.function) rows.push(`<dt class="coach-only">${t('function')}</dt><dd class="coach-only">${escapeHtml(tf(struct.function))}</dd>`);
   if (struct.innervation) rows.push(`<dt class="coach-only">${t('innervation')}</dt><dd class="coach-only">${escapeHtml(tf(struct.innervation))}</dd>`);
+  if (struct.notes) rows.push(`<dt>${t('notes_label')}</dt><dd>${escapeHtml(tf(struct.notes))}</dd>`);
 
   const hasCurve = fc.shortened || fc.mid || fc.lengthened;
   const curveBlock = hasCurve ? `

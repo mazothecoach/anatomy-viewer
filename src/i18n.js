@@ -75,7 +75,9 @@ const STRINGS = {
     empty_exercises: 'Aún no hay ejercicios cargados.',
     where_to_feel: '¿Dónde lo deberías sentir?',
     target_muscle: 'Músculo objetivo',
-    loaded_zone: 'Zona cargada'
+    loaded_zone: 'Zona cargada',
+    notes_label: 'Notas',
+    articulates: 'Articula con'
   },
   en: {
     tagline: 'Muscles, bones & ranges per exercise',
@@ -150,7 +152,9 @@ const STRINGS = {
     empty_exercises: 'No exercises loaded yet.',
     where_to_feel: 'Where should you feel it?',
     target_muscle: 'Target muscle',
-    loaded_zone: 'Loaded zone'
+    loaded_zone: 'Loaded zone',
+    notes_label: 'Notes',
+    articulates: 'Articulates with'
   }
 };
 

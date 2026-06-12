@@ -1,1 +1,672 @@
-[]
+[
+  {
+    "id": "clavicle",
+    "meshNames": [
+      "Clavicler"
+    ],
+    "layer": "bone",
+    "region": "shoulder",
+    "name": {
+      "es": "Clavícula",
+      "en": "Clavicle"
+    },
+    "location": {
+      "es": "Frente del hombro, del esternón al acromion",
+      "en": "Front of the shoulder, sternum to acromion"
+    },
+    "function": {
+      "es": "Único puente óseo entre el brazo y el tronco; mantiene el hombro separado del tórax para que el brazo tenga espacio de movimiento. Su longitud influye en lo anchos que se ven los hombros.",
+      "en": "The only bony bridge between the arm and the trunk; it holds the shoulder away from the rib cage so the arm has room to move. Its length influences how wide the shoulders look."
+    },
+    "articulations": [
+      "sternum",
+      "scapula"
+    ],
+    "notes": {
+      "es": "Palpable en toda su longitud. Clavículas largas dan más ancho de hombro y mejor ilusión en V; cortas, menos. Es el hueso que más se fractura por caídas sobre el brazo extendido.",
+      "en": "Palpable along its whole length. Long clavicles give more shoulder width and a better V-taper; short ones, less. It's the most commonly fractured bone from falls onto an outstretched arm."
+    }
+  },
+  {
+    "id": "scapula",
+    "meshNames": [
+      "Scapular"
+    ],
+    "layer": "bone",
+    "region": "shoulder",
+    "name": {
+      "es": "Escápula (omóplato)",
+      "en": "Scapula"
+    },
+    "location": {
+      "es": "Parte alta de la espalda, sobre la caja torácica",
+      "en": "Upper back, riding on the rib cage"
+    },
+    "function": {
+      "es": "Base móvil del hombro: no encaja en una articulación rígida sino que flota sobre la caja, así que su posición decide cuánto rango tiene el brazo. Buena rotación ascendente de la escápula es prerrequisito para el trabajo overhead.",
+      "en": "The mobile base of the shoulder: it doesn't sit in a rigid joint but floats on the rib cage, so its position decides how much range the arm gets. Good scapular upward rotation is a prerequisite for overhead work."
+    },
+    "articulations": [
+      "clavicle",
+      "humerus"
+    ],
+    "notes": {
+      "es": "Sus referencias palpables (borde medial, ángulo inferior, espina, acromion) sirven para leer el control escapular. La articulación con la caja es 'escapulotorácica', funcional, no una articulación verdadera.",
+      "en": "Its palpable landmarks (medial border, inferior angle, spine, acromion) help read scapular control. Its junction with the rib cage is 'scapulothoracic', a functional rather than a true joint."
+    }
+  },
+  {
+    "id": "humerus",
+    "meshNames": [
+      "Humerusr"
+    ],
+    "layer": "bone",
+    "region": "arm",
+    "name": {
+      "es": "Húmero",
+      "en": "Humerus"
+    },
+    "location": {
+      "es": "Hueso del brazo, del hombro al codo",
+      "en": "Arm bone, shoulder to elbow"
+    },
+    "function": {
+      "es": "Palanca larga del brazo; su cabeza redonda permite el rango enorme del hombro y su extremo distal forma la bisagra del codo. La mayoría de los músculos de empuje y jalón insertan o cruzan aquí.",
+      "en": "Long lever of the arm; its round head allows the shoulder's huge range and its distal end forms the elbow hinge. Most pushing and pulling muscles insert on or cross it."
+    },
+    "articulations": [
+      "scapula",
+      "radius",
+      "ulna"
+    ],
+    "notes": {
+      "es": "La cabeza humeral debe quedar centrada en la glena: el deltoides la empuja hacia arriba y el manguito la recentra. El surco bicipital aloja el tendón de la cabeza larga del bíceps.",
+      "en": "The humeral head must stay centered in the glenoid: the deltoid pushes it up and the cuff recenters it. The bicipital groove houses the long-head biceps tendon."
+    }
+  },
+  {
+    "id": "radius",
+    "meshNames": [
+      "Radiusr"
+    ],
+    "layer": "bone",
+    "region": "arm",
+    "name": {
+      "es": "Radio",
+      "en": "Radius"
+    },
+    "location": {
+      "es": "Hueso del antebrazo del lado del pulgar",
+      "en": "Forearm bone on the thumb side"
+    },
+    "function": {
+      "es": "El hueso que gira: la prono-supinación es el radio rodando sobre el cúbito. Por eso el agarre (prono, neutro, supino) cambia qué flexor de codo tiene mejor palanca.",
+      "en": "The bone that rotates: pronation-supination is the radius rolling over the ulna. That's why grip (pronated, neutral, supinated) changes which elbow flexor has the best leverage."
+    },
+    "articulations": [
+      "humerus",
+      "ulna",
+      "carpals"
+    ],
+    "notes": {
+      "es": "El bíceps inserta en su tuberosidad, de ahí su rol supinador. Del lado de la muñeca, el radio carga la mayor parte del peso hacia la mano.",
+      "en": "The biceps inserts on its tuberosity, hence its supinator role. At the wrist, the radius carries most of the load toward the hand."
+    }
+  },
+  {
+    "id": "ulna",
+    "meshNames": [
+      "Ulnar"
+    ],
+    "layer": "bone",
+    "region": "arm",
+    "name": {
+      "es": "Cúbito",
+      "en": "Ulna"
+    },
+    "location": {
+      "es": "Hueso del antebrazo del lado del meñique",
+      "en": "Forearm bone on the pinky side"
+    },
+    "function": {
+      "es": "El hueso fijo del antebrazo: forma la bisagra del codo con su olécranon (la 'punta' del codo). El tríceps tira de él para extender el codo y el braquial para flexionarlo, sin importar el giro del antebrazo.",
+      "en": "The fixed forearm bone: it forms the elbow hinge via its olecranon (the elbow's 'point'). The triceps pulls on it to extend the elbow and the brachialis to flex it, regardless of forearm rotation."
+    },
+    "articulations": [
+      "humerus",
+      "radius",
+      "carpals"
+    ],
+    "notes": {
+      "es": "Como el braquial inserta en el cúbito, su palanca de flexión no cambia con el agarre, a diferencia del bíceps. El olécranon es palpable y referencia clara del codo.",
+      "en": "Because the brachialis inserts on the ulna, its flexion leverage doesn't change with grip, unlike the biceps. The olecranon is palpable and a clear elbow landmark."
+    }
+  },
+  {
+    "id": "carpals",
+    "meshNames": [
+      "Capitater",
+      "Hamater",
+      "Lunate_boner",
+      "Pisiformr",
+      "Scaphoidr",
+      "Triquetrumr"
+    ],
+    "layer": "bone",
+    "region": "arm",
+    "name": {
+      "es": "Huesos del carpo",
+      "en": "Carpal bones"
+    },
+    "location": {
+      "es": "Grupo de 8 huesos pequeños de la muñeca",
+      "en": "Cluster of 8 small wrist bones"
+    },
+    "function": {
+      "es": "Forman la muñeca: dan movilidad en varios planos y a la vez transmiten la carga del agarre del antebrazo a la mano. Su estabilidad la dan sobre todo los músculos del antebrazo, no la forma ósea.",
+      "en": "They form the wrist: they give multi-plane mobility while transmitting grip load from the forearm to the hand. Their stability comes mostly from the forearm muscles, not bony shape."
+    },
+    "articulations": [
+      "radius",
+      "ulna"
+    ],
+    "notes": {
+      "es": "En posiciones de carga sobre las manos (fondos, planchas, sentadilla frontal) la muñeca se estabiliza con co-contracción de flexores y extensores; la rigidez excesiva o un mal apilamiento de la muñeca es fuente común de molestia.",
+      "en": "In hand-loaded positions (dips, planks, front squat) the wrist is stabilized by co-contraction of flexors and extensors; excessive stiffness or poor wrist stacking is a common source of discomfort."
+    }
+  },
+  {
+    "id": "sternum",
+    "meshNames": [
+      "Body_of_sternum",
+      "Manubrium_of_sternum"
+    ],
+    "layer": "bone",
+    "region": "core",
+    "name": {
+      "es": "Esternón",
+      "en": "Sternum"
+    },
+    "location": {
+      "es": "Hueso plano al centro del pecho",
+      "en": "Flat bone at the center of the chest"
+    },
+    "function": {
+      "es": "Ancla central del pecho: el pectoral mayor nace en parte de él y las costillas se unen a él por delante. Su posición (caja arriba vs hundida) cambia la mecánica de respiración y de press.",
+      "en": "Central anchor of the chest: the pec major partly arises from it and the ribs join it in front. Its position (ribcage up vs collapsed) changes breathing and pressing mechanics."
+    },
+    "articulations": [
+      "clavicle",
+      "ribs"
+    ],
+    "notes": {
+      "es": "'Costillas arriba sin arquear' es una señal postural útil: mantener el esternón en buena posición sin hiperextender la lumbar facilita bracear y respirar 360°.",
+      "en": "'Ribs up without arching' is a useful postural cue: keeping the sternum well positioned without hyperextending the low back makes bracing and 360° breathing easier."
+    }
+  },
+  {
+    "id": "ribs",
+    "meshNames": [
+      "Rib_(10th)r",
+      "Rib_(11th)r",
+      "Rib_(12th)r",
+      "Rib_(1st)r",
+      "Rib_(2nd)r",
+      "Rib_(3rd)r",
+      "Rib_(4th)r",
+      "Rib_(5th)r",
+      "Rib_(6th)r",
+      "Rib_(7th)r",
+      "Rib_(8th)r",
+      "Rib_(9th)r"
+    ],
+    "layer": "bone",
+    "region": "core",
+    "name": {
+      "es": "Costillas",
+      "en": "Ribs"
+    },
+    "location": {
+      "es": "Las 12 pares que forman la caja torácica",
+      "en": "The 12 pairs forming the rib cage"
+    },
+    "function": {
+      "es": "Forman el cilindro superior del tronco: protegen los órganos y, al moverse con la respiración, modulan la presión que estabiliza la columna. La posición de la caja sobre la pelvis es central para el bracing.",
+      "en": "They form the upper cylinder of the torso: they protect the organs and, by moving with breathing, modulate the pressure that stabilizes the spine. Ribcage position over the pelvis is central to bracing."
+    },
+    "articulations": [
+      "sternum",
+      "thoracic_vertebrae"
+    ],
+    "notes": {
+      "es": "Apilar la caja sobre la pelvis (no en flare costal ni hundida) es lo que permite generar presión intraabdominal real. Las costillas inferiores son punto de origen de oblicuos y diafragma.",
+      "en": "Stacking the ribcage over the pelvis (neither flared nor collapsed) is what allows real intra-abdominal pressure. The lower ribs are an origin point for the obliques and diaphragm."
+    }
+  },
+  {
+    "id": "cervical_vertebrae",
+    "meshNames": [
+      "Atlas_(C1)",
+      "Axis_(C2)",
+      "Cervical_vertebra_(C3)",
+      "Cervical_vertebra_(C4)",
+      "Cervical_vertebra_(C5)",
+      "Cervical_vertebra_(C6)",
+      "Cervical_vertebra_(C7)",
+      "Cervical_vertebrae_(C3)",
+      "Cervical_vertebrae_(C4)",
+      "Cervical_vertebrae_(C5)",
+      "Cervical_vertebrae_(C6)",
+      "Cervical_vertebrae_(C7)"
+    ],
+    "layer": "bone",
+    "region": "axial",
+    "name": {
+      "es": "Vértebras cervicales (C1–C7)",
+      "en": "Cervical vertebrae (C1–C7)"
+    },
+    "location": {
+      "es": "Las 7 vértebras del cuello",
+      "en": "The 7 vertebrae of the neck"
+    },
+    "function": {
+      "es": "El segmento más móvil de la columna: orientan la cabeza en todos los planos. Sostienen poco peso pero dependen mucho del control muscular fino; tienden a sobrecargarse cuando el control escapular falla.",
+      "en": "The most mobile segment of the spine: they orient the head in all planes. They bear little weight but rely heavily on fine muscular control; they tend to overload when scapular control fails."
+    },
+    "articulations": [
+      "skull",
+      "thoracic_vertebrae"
+    ],
+    "notes": {
+      "es": "La tensión cervical en trabajo overhead suele venir de elevador y trapecio superior compensando una rotación ascendente escapular pobre, no de un problema local del cuello.",
+      "en": "Neck tension in overhead work usually comes from the levator and upper trap compensating for poor scapular upward rotation, not a local neck problem."
+    }
+  },
+  {
+    "id": "thoracic_vertebrae",
+    "meshNames": [
+      "Thoracic_vertebra_(T1)",
+      "Thoracic_vertebra_(T10)",
+      "Thoracic_vertebra_(T11)",
+      "Thoracic_vertebra_(T12)",
+      "Thoracic_vertebra_(T2)",
+      "Thoracic_vertebra_(T3)",
+      "Thoracic_vertebra_(T4)",
+      "Thoracic_vertebra_(T5)",
+      "Thoracic_vertebra_(T6)",
+      "Thoracic_vertebra_(T7)",
+      "Thoracic_vertebra_(T8)",
+      "Thoracic_vertebra_(T9)",
+      "Thoracic_vertebrae_(T1)",
+      "Thoracic_vertebrae_(T10)",
+      "Thoracic_vertebrae_(T11)",
+      "Thoracic_vertebrae_(T12)",
+      "Thoracic_vertebrae_(T2)",
+      "Thoracic_vertebrae_(T3)",
+      "Thoracic_vertebrae_(T4)",
+      "Thoracic_vertebrae_(T5)",
+      "Thoracic_vertebrae_(T6)",
+      "Thoracic_vertebrae_(T7)",
+      "Thoracic_vertebrae_(T8)",
+      "Thoracic_vertebrae_(T9)"
+    ],
+    "layer": "bone",
+    "region": "axial",
+    "name": {
+      "es": "Vértebras torácicas (T1–T12)",
+      "en": "Thoracic vertebrae (T1–T12)"
+    },
+    "location": {
+      "es": "Las 12 vértebras de la espalda media, unidas a las costillas",
+      "en": "The 12 mid-back vertebrae, attached to the ribs"
+    },
+    "function": {
+      "es": "Segmento de la columna diseñado para rotación. Una buena movilidad torácica habilita el alcance overhead y descarga al cuello y a la lumbar de tener que compensar rangos que no les tocan.",
+      "en": "The spinal segment built for rotation. Good thoracic mobility enables overhead reach and spares the neck and low back from having to make up ranges that aren't theirs."
+    },
+    "articulations": [
+      "cervical_vertebrae",
+      "lumbar_vertebrae",
+      "ribs"
+    ],
+    "notes": {
+      "es": "La rotación torácica es prerrequisito para entrenar el dorsal en posición alargada (CH 10). Si la torácica no rota ni extiende, el rango overhead se pide prestado a la lumbar, que no debería darlo.",
+      "en": "Thoracic rotation is a prerequisite for training the lat lengthened (CH 10). If the thoracic spine won't rotate or extend, the overhead range gets borrowed from the lumbar spine, which shouldn't give it."
+    }
+  },
+  {
+    "id": "lumbar_vertebrae",
+    "meshNames": [
+      "Lumbar_vertebra_(L1)",
+      "Lumbar_vertebra_(L2)",
+      "Lumbar_vertebra_(L3)",
+      "Lumbar_vertebra_(L4)",
+      "Lumbar_vertebra_(L5)",
+      "Lumbar_vertebrae_(L1)",
+      "Lumbar_vertebrae_(L2)",
+      "Lumbar_vertebrae_(L3)",
+      "Lumbar_vertebrae_(L4)",
+      "Lumbar_vertebrae_(L5)"
+    ],
+    "layer": "bone",
+    "region": "axial",
+    "name": {
+      "es": "Vértebras lumbares (L1–L5)",
+      "en": "Lumbar vertebrae (L1–L5)"
+    },
+    "location": {
+      "es": "Las 5 vértebras de la espalda baja",
+      "en": "The 5 low-back vertebrae"
+    },
+    "function": {
+      "es": "Segmento de carga de la columna: grandes y robustas para soportar peso, pero con poca rotación de diseño. Su trabajo es estabilizarse, no moverse mucho bajo carga.",
+      "en": "The load-bearing spinal segment: large and robust to support weight, but with little rotation by design. Its job is to stabilize, not to move much under load."
+    },
+    "articulations": [
+      "thoracic_vertebrae",
+      "sacrum"
+    ],
+    "notes": {
+      "es": "Idea central del PRE-SCRIPT (CH 7): la columna lumbar se estabiliza, no se fortalece a base de flexionarla o extenderla cargada. Cuando dorsal y glúteo funcionan, la lumbar deja de tener que compensar.",
+      "en": "Core PRE-SCRIPT idea (CH 7): the lumbar spine is stabilized, not strengthened by repeatedly flexing or extending it under load. When the lat and glute work, the low back stops having to compensate."
+    }
+  },
+  {
+    "id": "skull",
+    "meshNames": [
+      "Ethmoid_Bone",
+      "Frontal_bone",
+      "Occipital_bone",
+      "Parietal_bone_left",
+      "Parietal_bone_right",
+      "Sphenoid_bone",
+      "Vomer",
+      "Lacrimal_boner",
+      "Maxilla_boner",
+      "Nasal_boner",
+      "Palatine_boner",
+      "Temporal_boner",
+      "Zygomatic_boner"
+    ],
+    "layer": "bone",
+    "region": "axial",
+    "name": {
+      "es": "Cráneo",
+      "en": "Skull"
+    },
+    "location": {
+      "es": "Estructura ósea de la cabeza",
+      "en": "Bony structure of the head"
+    },
+    "function": {
+      "es": "Protege el cerebro y aloja los sentidos. Para el entrenamiento, su relevancia es la posición de la cabeza: adelantarla cambia la carga sobre el cuello y la señal de control postural de toda la cadena.",
+      "en": "Protects the brain and houses the senses. For training, its relevance is head position: pushing it forward changes the load on the neck and the postural-control signal of the whole chain."
+    },
+    "articulations": [
+      "cervical_vertebrae",
+      "mandible"
+    ],
+    "notes": {
+      "es": "Una cabeza neutra (no adelantada) ayuda a mantener la torácica extendida y la respiración libre. 'Mirada al horizonte' suele ordenar la postura mejor que pensar en el cuello.",
+      "en": "A neutral head (not forward) helps keep the thoracic spine extended and breathing free. 'Eyes on the horizon' often organizes posture better than thinking about the neck."
+    }
+  },
+  {
+    "id": "mandible",
+    "meshNames": [
+      "Mandible_bone"
+    ],
+    "layer": "bone",
+    "region": "axial",
+    "name": {
+      "es": "Mandíbula",
+      "en": "Mandible"
+    },
+    "location": {
+      "es": "Hueso móvil de la cara, el maxilar inferior",
+      "en": "Movable facial bone, the lower jaw"
+    },
+    "function": {
+      "es": "Único hueso móvil del cráneo. En entrenamiento, apretar la mandíbula puede usarse como apoyo en levantamientos máximos (irradiación), pero la tensión mandibular crónica suele acompañar a un patrón de respiración alto y estresado.",
+      "en": "The only movable bone of the skull. In training, clenching the jaw can be used as support in max lifts (irradiation), but chronic jaw tension usually accompanies a high, stressed breathing pattern."
+    },
+    "articulations": [
+      "skull"
+    ],
+    "notes": {
+      "es": "Relevante de pasada: una respiración nasal relajada en el calentamiento ayuda a bajar la tensión global antes de bracear de verdad en las series pesadas.",
+      "en": "Relevant in passing: relaxed nasal breathing in the warm-up helps lower global tension before truly bracing on heavy sets."
+    }
+  },
+  {
+    "id": "hip_bone",
+    "meshNames": [
+      "Hip_boner"
+    ],
+    "layer": "bone",
+    "region": "hip",
+    "name": {
+      "es": "Hueso coxal (ilion + isquion + pubis)",
+      "en": "Hip bone (ilium + ischium + pubis)"
+    },
+    "location": {
+      "es": "Cada mitad de la pelvis",
+      "en": "Each half of the pelvis"
+    },
+    "function": {
+      "es": "Plataforma de la cadera: une el tren inferior con la columna y da inserción a glúteos, aductores e isquiotibiales. La orientación del acetábulo (más profundo o más somero, anteversión) determina cuánto se abre y baja la cadera en sentadilla.",
+      "en": "The hip's platform: it links the lower body to the spine and anchors the glutes, adductors and hamstrings. Acetabular orientation (deeper or shallower, anteversion) determines how much the hip opens and lowers in a squat."
+    },
+    "articulations": [
+      "sacrum",
+      "femur"
+    ],
+    "notes": {
+      "es": "La báscula pélvica (anterior/posterior) cambia la eficacia del glúteo mayor (CH 16): en anterior excesiva el glúteo trabaja en desventaja. La estructura individual del acetábulo explica por qué cada cliente tiene su mejor stance de sentadilla.",
+      "en": "Pelvic tilt (anterior/posterior) changes glute max efficiency (CH 16): in excessive anterior tilt the glute works at a disadvantage. Individual acetabular structure explains why each client has their own best squat stance."
+    }
+  },
+  {
+    "id": "sacrum",
+    "meshNames": [
+      "Sacrum"
+    ],
+    "layer": "bone",
+    "region": "hip",
+    "name": {
+      "es": "Sacro",
+      "en": "Sacrum"
+    },
+    "location": {
+      "es": "Base de la columna, en cuña entre los dos coxales",
+      "en": "Base of the spine, wedged between the two hip bones"
+    },
+    "function": {
+      "es": "Llave de bóveda de la pelvis: transmite la carga de la columna a las dos caderas. Es el origen de fibras del glúteo mayor y del piriforme, y su eje de movimiento con el ilion influye en cómo se reparte la carga lumbopélvica.",
+      "en": "Keystone of the pelvis: it transmits load from the spine to the two hips. It's the origin of glute max and piriformis fibers, and its motion axis with the ilium influences how lumbopelvic load is shared."
+    },
+    "articulations": [
+      "lumbar_vertebrae",
+      "hip_bone",
+      "coccyx"
+    ],
+    "notes": {
+      "es": "Las articulaciones sacroilíacas tienen muy poco movimiento; su trabajo es estabilidad, no rango. El manual subraya el eje instantáneo de sacro e ilion: una restricción se manifiesta en los tres planos.",
+      "en": "The sacroiliac joints have very little movement; their job is stability, not range. The manual highlights the instantaneous axis of sacrum and ilium: a restriction shows up across all three planes."
+    }
+  },
+  {
+    "id": "coccyx",
+    "meshNames": [
+      "Coccyx"
+    ],
+    "layer": "bone",
+    "region": "hip",
+    "name": {
+      "es": "Cóccix (rabadilla)",
+      "en": "Coccyx"
+    },
+    "location": {
+      "es": "Punta inferior de la columna, bajo el sacro",
+      "en": "Lower tip of the spine, below the sacrum"
+    },
+    "function": {
+      "es": "Pequeño remanente al final de la columna; da inserción a parte del suelo pélvico. Su relevancia práctica es como punto de apoyo y de molestia al sentarse, no como hueso de carga de entrenamiento.",
+      "en": "A small remnant at the end of the spine; it anchors part of the pelvic floor. Its practical relevance is as a sitting contact and discomfort point, not a training load-bearing bone."
+    },
+    "articulations": [
+      "sacrum"
+    ],
+    "notes": {
+      "es": "Su conexión con el suelo pélvico lo liga al sistema de presión del core: el suelo pélvico es el 'piso' del cilindro que el diafragma cierra por arriba.",
+      "en": "Its pelvic-floor connection ties it to the core's pressure system: the pelvic floor is the 'floor' of the cylinder the diaphragm caps from above."
+    }
+  },
+  {
+    "id": "femur",
+    "meshNames": [
+      "Femurr"
+    ],
+    "layer": "bone",
+    "region": "thigh",
+    "name": {
+      "es": "Fémur",
+      "en": "Femur"
+    },
+    "location": {
+      "es": "Hueso del muslo",
+      "en": "Thigh bone"
+    },
+    "function": {
+      "es": "Palanca larga del muslo; transmite la carga de la cadera a la rodilla. Su longitud define las palancas de la sentadilla: un fémur largo obliga a más inclinación del tronco o a ajustar stance para mantener el equilibrio.",
+      "en": "Long thigh lever; transmits load from hip to knee. Its length sets the squat's levers: a long femur forces more torso lean or a stance adjustment to keep balance."
+    },
+    "articulations": [
+      "hip_bone",
+      "patella",
+      "tibia"
+    ],
+    "notes": {
+      "es": "El ángulo Q (cómo sale el fémur del acetábulo) cambia la orientación de fibras y la línea de tracción; el manual insiste en identificarlo por individuo. Fémur largo respecto al torso suele favorecer el hinge sobre la sentadilla profunda con torso vertical.",
+      "en": "The Q angle (how the femur leaves the acetabulum) changes fiber orientation and line of pull; the manual stresses identifying it per individual. A long femur relative to the torso tends to favor the hinge over an upright deep squat."
+    }
+  },
+  {
+    "id": "patella",
+    "meshNames": [
+      "Patellar"
+    ],
+    "layer": "bone",
+    "region": "thigh",
+    "name": {
+      "es": "Rótula",
+      "en": "Patella"
+    },
+    "location": {
+      "es": "Hueso de la rodilla, dentro del tendón del cuádriceps",
+      "en": "Kneecap, within the quadriceps tendon"
+    },
+    "function": {
+      "es": "Polea del cuádriceps: aumenta el brazo de palanca de la extensión de rodilla, haciendo el movimiento más eficiente. Se desliza por el surco del fémur y debe rastrear centrada para no irritar la articulación.",
+      "en": "The quadriceps' pulley: it increases the lever arm of knee extension, making the movement more efficient. It glides in the femoral groove and must track centered to avoid irritating the joint."
+    },
+    "articulations": [
+      "femur"
+    ],
+    "notes": {
+      "es": "El vasto medial ayuda a mantenerla centrada. La molestia anterior de rodilla suele ligarse al rastreo rotuliano; se gestiona mejor con rango completo y buena alineación que con extensiones de rango corto.",
+      "en": "The vastus medialis helps keep it centered. Anterior knee discomfort is often tied to patellar tracking; it's better managed with full range and good alignment than with short-range extensions."
+    }
+  },
+  {
+    "id": "tibia",
+    "meshNames": [
+      "Tibiar"
+    ],
+    "layer": "bone",
+    "region": "leg",
+    "name": {
+      "es": "Tibia",
+      "en": "Tibia"
+    },
+    "location": {
+      "es": "Hueso grueso de la espinilla, soporta el peso",
+      "en": "Thick shin bone, weight-bearing"
+    },
+    "function": {
+      "es": "Pilar de carga de la pierna: lleva casi todo el peso de la rodilla al tobillo. La orientación de la tibia y la movilidad del tobillo deciden cuánto puede avanzar la rodilla y, con ello, la profundidad de sentadilla.",
+      "en": "Weight-bearing pillar of the lower leg: it carries nearly all the load from knee to ankle. Tibial orientation and ankle mobility decide how far the knee can travel forward and thus squat depth."
+    },
+    "articulations": [
+      "femur",
+      "fibula",
+      "tarsals"
+    ],
+    "notes": {
+      "es": "Su tuberosidad recibe el tendón rotuliano (todo el cuádriceps). La rotación de la tibia importa para el control de rodilla: isquiotibiales mediales la rotan adentro, el bíceps femoral afuera.",
+      "en": "Its tuberosity receives the patellar tendon (the whole quad). Tibial rotation matters for knee control: the medial hamstrings rotate it in, the biceps femoris out."
+    }
+  },
+  {
+    "id": "fibula",
+    "meshNames": [
+      "Fibular"
+    ],
+    "layer": "bone",
+    "region": "leg",
+    "name": {
+      "es": "Peroné",
+      "en": "Fibula"
+    },
+    "location": {
+      "es": "Hueso delgado lateral de la pierna",
+      "en": "Thin lateral bone of the lower leg"
+    },
+    "function": {
+      "es": "No soporta casi peso; su papel es dar inserción muscular (peroneos, parte del isquiotibial externo) y formar el tobillo lateral (maléolo externo), tope óseo que limita la inversión excesiva.",
+      "en": "Bears almost no weight; its role is muscle attachment (peroneals, part of the outer hamstring) and forming the lateral ankle (outer malleolus), a bony stop that limits excessive inversion."
+    },
+    "articulations": [
+      "tibia",
+      "tarsals"
+    ],
+    "notes": {
+      "es": "El maléolo externo es la referencia palpable del tobillo lateral. El esguince clásico (inversión) tensiona los ligamentos de esta zona; los peroneos son el freno muscular activo.",
+      "en": "The outer malleolus is the palpable landmark of the lateral ankle. The classic sprain (inversion) stresses the ligaments here; the peroneals are the active muscular brake."
+    }
+  },
+  {
+    "id": "tarsals",
+    "meshNames": [
+      "Calcaneusr",
+      "Cuboid_boner",
+      "Intermediate_cuneiform_boner",
+      "Lateral_cuneiform_boner",
+      "Medial_cuneiform_boner",
+      "Navicular_boner",
+      "Talusr"
+    ],
+    "layer": "bone",
+    "region": "leg",
+    "name": {
+      "es": "Huesos del tarso",
+      "en": "Tarsal bones"
+    },
+    "location": {
+      "es": "Grupo de 7 huesos del retropié y medio pie (incl. calcáneo y astrágalo)",
+      "en": "Cluster of 7 hindfoot/midfoot bones (incl. calcaneus and talus)"
+    },
+    "function": {
+      "es": "Forman la base de apoyo y los arcos del pie. El astrágalo recibe la carga de la tibia y la reparte; el calcáneo es el talón, donde inserta el tendón de Aquiles. La calidad del arco influye en cómo se alinea toda la pierna bajo carga.",
+      "en": "They form the base of support and the arches of the foot. The talus receives the tibia's load and distributes it; the calcaneus is the heel, where the Achilles tendon inserts. Arch quality influences how the whole leg aligns under load."
+    },
+    "articulations": [
+      "tibia",
+      "fibula"
+    ],
+    "notes": {
+      "es": "El tibial posterior sostiene el arco medial; un colapso del arco bajo carga puede leerse arriba como valgo de rodilla. Por eso el pie entra al cuadro antes de culpar solo a la cadera.",
+      "en": "The tibialis posterior supports the medial arch; arch collapse under load can read higher up as knee valgus. So the foot enters the picture before blaming the hip alone."
+    }
+  }
+]
