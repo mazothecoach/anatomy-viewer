@@ -7,10 +7,11 @@ const HIGHLIGHT_COLOR = new THREE.Color(0xc6ff3d);
 const DIM_OPACITY = 0.18;
 
 // createViewer: monta la escena Three.js sobre un <canvas> y expone una API
-// para cargar modelos, taggear mallas con datos, filtrar por capa y resaltar.
-export function createViewer(canvas, { onSelect } = {}) {
+// para cargar modelos, taggear mallas con datos, filtrar por capa/región y
+// resaltar una o varias estructuras a la vez.
+export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
@@ -21,6 +22,8 @@ export function createViewer(canvas, { onSelect } = {}) {
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.target.set(0, 1, 0);
+  controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+  canvas.style.touchAction = 'none';
 
   scene.add(new THREE.HemisphereLight(0xffffff, 0x111111, 0.6));
   const key = new THREE.DirectionalLight(0xffffff, 1.2); key.position.set(2, 4, 3); scene.add(key);
@@ -29,7 +32,8 @@ export function createViewer(canvas, { onSelect } = {}) {
 
   const loader = new GLTFLoader();
   const draco = new DRACOLoader();
-  draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
+  // Decoder autohospedado en /public/draco para no depender de un CDN.
+  draco.setDecoderPath(`${import.meta.env.BASE_URL}draco/`);
   loader.setDRACOLoader(draco);
 
   const raycaster = new THREE.Raycaster();
@@ -37,9 +41,10 @@ export function createViewer(canvas, { onSelect } = {}) {
 
   let model = null;
   let meshes = [];
-  let highlighted = null;
-  let originalMat = null;
-  let startX = 0, startY = 0;
+  // Mapa malla→material original para soportar resaltado de múltiples mallas.
+  const highlightedMap = new Map();
+  let currentLayer = null;          // 'muscle' | 'bone' | null
+  let currentRegionFilter = null;   // predicate(struct) → bool, o null
 
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -48,6 +53,8 @@ export function createViewer(canvas, { onSelect } = {}) {
     camera.updateProjectionMatrix();
   }
   new ResizeObserver(resize).observe(canvas);
+  window.addEventListener('orientationchange', () => { setTimeout(() => { resize(); fit(); }, 250); });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
   resize();
 
   (function animate() {
@@ -64,7 +71,7 @@ export function createViewer(canvas, { onSelect } = {}) {
         if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => m.dispose());
       });
     }
-    model = null; meshes = []; highlighted = null; originalMat = null;
+    model = null; meshes = []; highlightedMap.clear();
   }
 
   function loadModel(url, { onProgress } = {}) {
@@ -88,18 +95,29 @@ export function createViewer(canvas, { onSelect } = {}) {
     });
   }
 
-  // Tag each mesh with the resolved structure data. resolver(meshName) -> { id, layer, ... } | null
+  // resolver(meshName) -> { id, layer, ... } | null
   function applyResolver(resolver) {
     meshes.forEach(m => { m.userData.struct = resolver ? resolver(m.name) : null; });
   }
 
-  function setLayer(layer) {
-    meshes.forEach(m => {
-      const s = m.userData.struct;
-      m.visible = !layer || !s || s.layer === layer || s.layer == null;
-    });
+  // ── Visibilidad: capa (músculo/hueso) ∩ región ───────────────────────────
+  function layerOK(m) {
+    const s = m.userData.struct;
+    return !currentLayer || !s || s.layer == null || s.layer === currentLayer;
   }
+  function regionOK(m) {
+    if (!currentRegionFilter) return true;
+    const s = m.userData.struct;
+    return s ? !!currentRegionFilter(s) : false;
+  }
+  function applyVisibility() {
+    meshes.forEach(m => { m.visible = layerOK(m) && regionOK(m); });
+  }
+  function setLayer(layer) { currentLayer = layer; applyVisibility(); }
+  function isolateRegion(pred) { currentRegionFilter = pred; applyVisibility(); }
+  function clearIsolation() { currentRegionFilter = null; applyVisibility(); }
 
+  // ── Encuadre ──────────────────────────────────────────────────────────────
   function frameModel() {
     if (!model) return;
     const box = new THREE.Box3().setFromObject(model);
@@ -112,7 +130,6 @@ export function createViewer(canvas, { onSelect } = {}) {
     model.position.y += (size.y * scale) / 2;
     fit();
   }
-
   function fit() {
     if (!model) return;
     const box = new THREE.Box3().setFromObject(model);
@@ -124,13 +141,19 @@ export function createViewer(canvas, { onSelect } = {}) {
     controls.target.copy(center);
     controls.update();
   }
-
   function reset() {
     camera.position.set(0, 1.2, 3);
     controls.target.set(0, 1, 0);
     controls.update();
   }
 
+  // ── Resaltado (uno o varios) ────────────────────────────────────────────────
+  function makeHighlightMat() {
+    return new THREE.MeshStandardMaterial({
+      color: HIGHLIGHT_COLOR, emissive: new THREE.Color(0x556a18),
+      metalness: 0.1, roughness: 0.4, transparent: true, opacity: 1
+    });
+  }
   function dimAll() {
     meshes.forEach(m => (Array.isArray(m.material) ? m.material : [m.material]).forEach(mt => { mt.opacity = DIM_OPACITY; }));
   }
@@ -138,32 +161,65 @@ export function createViewer(canvas, { onSelect } = {}) {
     meshes.forEach(m => (Array.isArray(m.material) ? m.material : [m.material]).forEach(mt => { mt.opacity = 1; }));
   }
   function clearHighlight() {
-    if (highlighted && originalMat) highlighted.material = originalMat;
+    highlightedMap.forEach((origMat, mesh) => {
+      const cur = mesh.material;
+      mesh.material = origMat;
+      if (cur && cur !== origMat) cur.dispose(); // no fugar los materiales temporales
+    });
+    highlightedMap.clear();
     restoreAll();
-    highlighted = null; originalMat = null;
+  }
+  function tint(mesh) {
+    if (highlightedMap.has(mesh)) return;
+    highlightedMap.set(mesh, mesh.material);
+    mesh.material = makeHighlightMat();
   }
   function highlightMesh(mesh) {
     clearHighlight();
     if (!mesh) return;
-    highlighted = mesh;
-    originalMat = mesh.material;
-    mesh.material = new THREE.MeshStandardMaterial({
-      color: HIGHLIGHT_COLOR, emissive: new THREE.Color(0x556a18),
-      metalness: 0.1, roughness: 0.4, transparent: true, opacity: 1
-    });
+    tint(mesh);
     dimAll();
     mesh.material.opacity = 1;
   }
   function highlightById(id) {
-    const mesh = meshes.find(m => m.userData.struct && m.userData.struct.id === id);
-    if (mesh) highlightMesh(mesh);
-    return !!mesh;
+    const list = meshes.filter(m => m.userData.struct && m.userData.struct.id === id);
+    if (!list.length) return false;
+    clearHighlight();
+    list.forEach(tint);
+    dimAll();
+    list.forEach(m => { m.material.opacity = 1; });
+    return true;
+  }
+  // Resalta un conjunto de estructuras (por id) a la vez. Devuelve cuántas se tiñeron.
+  function highlightMany(ids) {
+    clearHighlight();
+    const set = new Set(ids || []);
+    const list = meshes.filter(m => m.userData.struct && set.has(m.userData.struct.id));
+    if (!list.length) return 0;
+    list.forEach(tint);
+    dimAll();
+    list.forEach(m => { m.material.opacity = 1; });
+    return list.length;
   }
 
-  canvas.addEventListener('pointerdown', e => { startX = e.clientX; startY = e.clientY; });
+  // ── Selección por puntero (con soporte táctil) ──────────────────────────────
+  const activePointers = new Set();
+  let downX = 0, downY = 0, downT = 0, downId = null, wasMulti = false;
+  canvas.addEventListener('pointerdown', e => {
+    activePointers.add(e.pointerId);
+    if (activePointers.size > 1) { wasMulti = true; return; }
+    wasMulti = false;
+    downX = e.clientX; downY = e.clientY; downT = performance.now(); downId = e.pointerId;
+    try { canvas.setPointerCapture(e.pointerId); } catch {}
+  });
   canvas.addEventListener('pointerup', e => {
-    if (!model) return;
-    if (Math.hypot(e.clientX - startX, e.clientY - startY) > 4) return; // arrastre, no clic
+    const multi = wasMulti || activePointers.size > 1;
+    activePointers.delete(e.pointerId);
+    try { canvas.releasePointerCapture(e.pointerId); } catch {}
+    if (!model || e.pointerId !== downId || multi) return;
+    const thresh = e.pointerType === 'touch' ? 12 : 4;
+    if (Math.hypot(e.clientX - downX, e.clientY - downY) > thresh) return; // arrastre
+    if (performance.now() - downT > 500) return;                          // pulsación larga
     const rect = canvas.getBoundingClientRect();
     pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -174,10 +230,12 @@ export function createViewer(canvas, { onSelect } = {}) {
     highlightMesh(mesh);
     onSelect && onSelect({ meshName: mesh.name, struct: mesh.userData.struct || null });
   });
+  canvas.addEventListener('pointercancel', e => { activePointers.delete(e.pointerId); });
 
   return {
-    loadModel, applyResolver, setLayer, reset, fit, frameModel,
-    highlightById, clearHighlight,
+    loadModel, applyResolver, setLayer, isolateRegion, clearIsolation,
+    reset, fit, frameModel,
+    highlightMesh, highlightById, highlightMany, clearHighlight,
     getMeshNames: () => meshes.map(m => m.name),
     hasModel: () => !!model
   };

@@ -1,1 +1,83 @@
-[]
+[
+  {
+    "id": "arm_development",
+    "name": { "es": "Desarrollo de brazos", "en": "Arm development" },
+    "targetMuscles": ["biceps_brachii", "brachialis", "triceps_brachii", "brachioradialis"],
+    "rationale": {
+      "es": "El tríceps aporta cerca de dos tercios de la masa del brazo, así que el grosor real depende más de él que del bíceps. El braquial empuja al bíceps hacia arriba dando pico, y el braquiorradial llena el antebrazo para un brazo completo en todo su rango.",
+      "en": "The triceps makes up roughly two-thirds of upper-arm mass, so real thickness comes more from it than from the biceps. The brachialis sits under the biceps and pushes it up to build the peak, while the brachioradialis fills the forearm for a complete arm across its full range."
+    }
+  },
+  {
+    "id": "wider_shoulders",
+    "name": { "es": "Hombros más anchos", "en": "Wider shoulders" },
+    "targetMuscles": ["deltoid", "supraspinatus"],
+    "rationale": {
+      "es": "El deltoides medio (lateral) es el que ensancha visualmente el hombro y trabaja sobre todo en abducción entre 30 y 110 grados; guía con el codo, no con la muñeca. El supraespinoso inicia los primeros grados de abducción y estabiliza la cabeza humeral para entrenar el lateral con seguridad.",
+      "en": "The lateral (medial) deltoid is what visually widens the shoulder and is most active in abduction between 30 and 110 degrees; lead with the elbow, not the wrist. The supraspinatus initiates the first degrees of abduction and stabilizes the humeral head so the lateral delt can be trained safely."
+    }
+  },
+  {
+    "id": "smaller_waist",
+    "name": { "es": "Cintura más estrecha", "en": "Smaller waist" },
+    "targetMuscles": ["latissimus_dorsi", "deltoid", "transversus_abdominis"],
+    "rationale": {
+      "es": "La cintura se ve más pequeña por ilusión de contraste: ensanchar el dorsal ancho y el deltoides lateral crea la forma en V que hace lucir estrecho el torso medio. El transverso del abdomen actúa como faja interna que ciñe y aplana la cintura; evita sobrecargar los oblicuos para no engrosarla.",
+      "en": "A smaller waist is largely a contrast illusion: widening the latissimus dorsi and lateral deltoid builds the V-taper that makes the midsection read as narrow. The transversus abdominis acts as an internal corset that cinches and flattens the waist; avoid over-bulking the obliques so the waistline does not thicken."
+    }
+  },
+  {
+    "id": "bigger_glutes",
+    "name": { "es": "Glúteos más grandes", "en": "Bigger glutes" },
+    "targetMuscles": ["gluteus_maximus", "gluteus_medius"],
+    "rationale": {
+      "es": "El glúteo mayor es el músculo más grande del cuerpo y aporta casi todo el volumen y la extensión de cadera, así que es la base del tamaño. El glúteo medio da amplitud lateral y redondez en el plano frontal, además de la estabilidad de cadera que muchas veces es el déficit real detrás de unos glúteos que no responden.",
+      "en": "The gluteus maximus is the largest muscle in the body and drives almost all of the volume and hip extension, so it is the foundation of size. The gluteus medius adds lateral width and roundness in the frontal plane, plus the hip stability that is often the real deficit behind glutes that won't grow."
+    }
+  },
+  {
+    "id": "wider_back",
+    "name": { "es": "Espalda más ancha", "en": "Wider back" },
+    "targetMuscles": ["latissimus_dorsi", "teres_major", "trapezius", "rhomboids"],
+    "rationale": {
+      "es": "El dorsal ancho es el motor de la anchura: ensancha la espalda hacia los lados y crea la forma en V. El redondo mayor refuerza esa anchura justo bajo la axila, mientras el trapecio y los romboides dan grosor y densidad en el centro de la espalda para una espalda ancha y completa.",
+      "en": "The latissimus dorsi is the engine of width: it broadens the back outward and creates the V-shape. The teres major reinforces that width just below the armpit, while the trapezius and rhomboids add thickness and density through the mid-back for a back that is both wide and full."
+    }
+  },
+  {
+    "id": "fuller_chest",
+    "name": { "es": "Pecho más lleno", "en": "Fuller chest" },
+    "targetMuscles": ["pectoralis_major", "pectoralis_minor"],
+    "rationale": {
+      "es": "El pectoral mayor es un músculo en abanico con porciones clavicular y esternocostal; trabajar sus tres zonas (acortada, media y alargada) llena el pecho de forma completa, más allá del dogma de inclinado o declinado. El pectoral menor, debajo, aporta volumen y postura escapular que sostiene la forma del pecho.",
+      "en": "The pectoralis major is a fan-shaped muscle with clavicular and sternocostal portions; training all three zones (shortened, mid, and lengthened) fills the chest completely, beyond the incline-vs-decline dogma. The pectoralis minor underneath adds volume and scapular posture that supports the chest's shape."
+    }
+  },
+  {
+    "id": "bigger_calves",
+    "name": { "es": "Pantorrillas más grandes", "en": "Bigger calves" },
+    "targetMuscles": ["gastrocnemius", "soleus"],
+    "rationale": {
+      "es": "El gastrocnemio forma las dos cabezas visibles y se entrena con la rodilla extendida para el contorno superior de la pantorrilla. El sóleo, más profundo, se trabaja con la rodilla flexionada (elevaciones sentado) y aporta gran parte del grosor total, por lo que ambos son necesarios.",
+      "en": "The gastrocnemius forms the two visible heads and is trained with the knee straight for the upper calf contour. The soleus sits underneath and is trained with the knee bent (seated raises), contributing much of the total thickness, so both are needed."
+    }
+  },
+  {
+    "id": "quad_sweep",
+    "name": { "es": "Barrido del cuádriceps", "en": "Quad sweep" },
+    "targetMuscles": ["vastus_lateralis", "rectus_femoris", "vastus_medialis"],
+    "rationale": {
+      "es": "El vasto lateral crea el barrido externo del muslo, la curva ancha que define la pierna vista de frente. El recto femoral aporta el largo central del muslo y el vasto medial (la gota) cierra la pierna sobre la rodilla, equilibrando el barrido externo con un muslo completo.",
+      "en": "The vastus lateralis creates the outer sweep of the thigh, the wide curve that defines the leg from the front. The rectus femoris adds central thigh length, and the vastus medialis (the teardrop) caps the leg above the knee, balancing the outer sweep for a complete quad."
+    }
+  },
+  {
+    "id": "posture",
+    "name": { "es": "Postura", "en": "Posture" },
+    "targetMuscles": ["trapezius", "serratus_anterior", "rhomboids", "erector_spinae", "gluteus_maximus"],
+    "rationale": {
+      "es": "Una buena postura nace del equilibrio escapular: el trapecio inferior y el serrato anterior dan rotación ascendente y los romboides retracción, sin que ninguno domine. El erector espinal sostiene la columna erguida y el glúteo mayor extiende la cadera y controla la pelvis, cerrando la cadena fascial que mantiene el cuerpo alineado.",
+      "en": "Good posture comes from scapular balance: the lower trapezius and serratus anterior provide upward rotation and the rhomboids provide retraction, with none dominating. The erector spinae holds the spine upright and the gluteus maximus extends the hip and controls the pelvis, closing the fascial chain that keeps the body aligned."
+    }
+  }
+]

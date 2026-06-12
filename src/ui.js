@@ -1,14 +1,14 @@
 import { t, tf, toggleLang, applyStaticStrings } from './i18n.js';
 
 const $ = sel => document.querySelector(sel);
+const isNarrow = () => window.matchMedia('(max-width: 760px)').matches;
 
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-// Glifo SVG del vientre muscular dibujado a su longitud real por zona.
-// short = contraído (corto+grueso, lima); mid = neutral (ámbar); long = estirado (largo+fino, azul).
+// ── Glifo de zona de curva de fuerza ─────────────────────────────────────────
 function zoneGlyph(kind) {
   const cfg = {
     short: { x1: 17, x2: 47, h: 11, color: '#c6ff3d' },
@@ -23,7 +23,6 @@ function zoneGlyph(kind) {
     <path d="${belly}" fill="${cfg.color}" opacity="0.9"/>
   </svg>`;
 }
-
 function zoneRow(kind, labelKey, capKey, exercise) {
   return `<div class="zone zone-${kind}">
     <div class="zone-glyph">${zoneGlyph(kind)}</div>
@@ -35,7 +34,7 @@ function zoneRow(kind, labelKey, capKey, exercise) {
   </div>`;
 }
 
-// Renderiza la ficha de una estructura (músculo/hueso) en el idioma activo.
+// ── Ficha de una estructura ──────────────────────────────────────────────────
 export function renderInfo(struct, meshName) {
   const info = $('#info');
   if (!struct) {
@@ -48,7 +47,7 @@ export function renderInfo(struct, meshName) {
   }
   const fc = struct.forceCurve || {};
   const rows = [];
-  rows.push(`<dt>${t('location')}</dt><dd>${escapeHtml(tf(struct.location))}</dd>`);
+  if (struct.location) rows.push(`<dt>${t('location')}</dt><dd>${escapeHtml(tf(struct.location))}</dd>`);
   if (struct.origin) rows.push(`<dt class="coach-only">${t('origin')}</dt><dd class="coach-only">${escapeHtml(tf(struct.origin))}</dd>`);
   if (struct.insertion) rows.push(`<dt class="coach-only">${t('insertion')}</dt><dd class="coach-only">${escapeHtml(tf(struct.insertion))}</dd>`);
   if (struct.action) rows.push(`<dt>${t('action')}</dt><dd>${escapeHtml(tf(struct.action))}</dd>`);
@@ -79,8 +78,27 @@ export function clearInfo() {
   $('#info').innerHTML = `<p class="placeholder">${t('select_prompt')}</p>`;
 }
 
-// Construye la lista lateral con las estructuras que existen en la BD,
-// marcando cuáles enlazaron a una malla del modelo cargado.
+// Resumen de resaltado múltiple (dolor / físico): rationale + chips de músculos.
+export function renderHighlightSummary(item, structById, missingIds) {
+  const info = $('#info');
+  const ids = item.strengthen || item.targetMuscles || [];
+  const missing = new Set(missingIds || []);
+  const chips = ids.map(id => {
+    const s = structById.get(id);
+    const label = s ? tf(s.name) : id;
+    const cls = missing.has(id) ? 'chip missing' : 'chip';
+    const title = missing.has(id) ? ` title="${t('not_in_model')}"` : '';
+    return `<span class="${cls}"${title}>${escapeHtml(label)}</span>`;
+  }).join('');
+  info.innerHTML = `<div class="muscle-card">
+    <h2>${escapeHtml(tf(item.name))}</h2>
+    <dt class="hs-label">${t('muscles_highlighted')}</dt>
+    <div class="muscle-chips">${chips || '—'}</div>
+    ${item.rationale ? `<div class="highlight-summary"><strong>${t('rationale')}:</strong> ${escapeHtml(tf(item.rationale))}</div>` : ''}
+  </div>`;
+}
+
+// ── Lista lateral (modo Explore) ─────────────────────────────────────────────
 export function buildList(structures, linkedIds, onPick) {
   const list = $('#list');
   list.innerHTML = '';
@@ -94,18 +112,79 @@ export function buildList(structures, linkedIds, onPick) {
     list.appendChild(el);
   });
 }
-
 export function setActiveListItem(id) {
   document.querySelectorAll('#list .item').forEach(el =>
     el.classList.toggle('active', el.dataset.id === id));
 }
+export function applySearchFilter(query) {
+  const q = (query || '').trim().toLowerCase();
+  document.querySelectorAll('#list .item').forEach(el => {
+    el.style.display = !q || el.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
 
-// Cablea todos los controles de UI. Devuelve helpers para el main.
-export function wireControls({ viewer, getStructures, onLayer, onLang }) {
+// ── Pestañas de región ───────────────────────────────────────────────────────
+export function buildRegionTabs(regions, activeRegion, onPick) {
+  const host = $('#region-tabs');
+  host.innerHTML = '';
+  const mk = (value, key) => {
+    const b = document.createElement('button');
+    b.className = 'region-pill' + ((value || null) === (activeRegion || null) ? ' active' : '');
+    b.textContent = t(key);
+    b.dataset.region = value || '';
+    b.onclick = () => {
+      host.querySelectorAll('.region-pill').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      onPick(value || null);
+    };
+    host.appendChild(b);
+  };
+  mk(null, 'region_all');
+  regions.forEach(r => mk(r, 'region_' + r));
+}
+
+// ── Picker (modo Dolor / Físico) ─────────────────────────────────────────────
+export function renderPickerList(items, emptyKey, onPick) {
+  const picker = $('#picker');
+  if (!items || !items.length) {
+    picker.innerHTML = `<p class="placeholder">${t(emptyKey)}</p>`;
+    return;
+  }
+  picker.innerHTML = '';
+  items.forEach(it => {
+    const card = document.createElement('button');
+    card.className = 'picker-card';
+    card.textContent = tf(it.name);
+    card.onclick = () => {
+      picker.querySelectorAll('.picker-card').forEach(x => x.classList.remove('active'));
+      card.classList.add('active');
+      onPick(it);
+    };
+    picker.appendChild(card);
+  });
+}
+
+// ── Drawer / bottom-sheet móvil ──────────────────────────────────────────────
+export function openInfoPanel() { if (isNarrow()) $('.right').classList.add('open'); }
+export function closeInfoPanel() { $('.right').classList.remove('open'); }
+function openDrawer() { $('.left').classList.add('open'); $('#scrim').classList.add('show'); }
+function closeDrawer() { $('.left').classList.remove('open'); $('#scrim').classList.remove('show'); }
+
+// ── Cableado de controles ────────────────────────────────────────────────────
+export function wireControls(opts) {
+  const {
+    viewer, onLayer, onLang, initialMode,
+    onMode, onRegion, painZones, physiqueGoals,
+    onPickPain, onPickPhysique, onListPick
+  } = opts;
+
+  // idioma
   $('#toggle-lang').onclick = () => { toggleLang(); onLang && onLang(); };
 
+  // vista coach / cliente (ui.js es dueño único de body.client)
   const viewBtn = $('#toggle-view');
-  let clientMode = false;
+  let clientMode = initialMode === 'client';
+  document.body.classList.toggle('client', clientMode);
   function paintViewBtn() { viewBtn.textContent = clientMode ? t('view_client') : t('view_coach'); }
   paintViewBtn();
   viewBtn.onclick = () => {
@@ -114,6 +193,29 @@ export function wireControls({ viewer, getStructures, onLayer, onLang }) {
     paintViewBtn();
   };
 
+  // modo Explore / Dolor / Físico
+  let currentMode = 'explore';
+  const modeBtns = {
+    explore: $('#mode-explore'), pain: $('#mode-pain'), physique: $('#mode-physique')
+  };
+  function setMode(mode) {
+    currentMode = mode;
+    Object.entries(modeBtns).forEach(([m, b]) => b.classList.toggle('active', m === mode));
+    viewer.clearHighlight();
+    viewer.clearIsolation();
+    clearInfo();
+    const explore = mode === 'explore';
+    $('#explore-panel').classList.toggle('hidden', !explore);
+    $('#picker').classList.toggle('hidden', explore);
+    if (mode === 'pain') renderPickerList(painZones, 'empty_painzones', onPickPain);
+    if (mode === 'physique') renderPickerList(physiqueGoals, 'empty_physique', onPickPhysique);
+    onMode && onMode(mode);
+  }
+  modeBtns.explore.onclick = () => setMode('explore');
+  modeBtns.pain.onclick = () => setMode('pain');
+  modeBtns.physique.onclick = () => setMode('physique');
+
+  // capas músculo / hueso
   $('#layer-muscle').onclick = () => switchLayer('muscle');
   $('#layer-bone').onclick = () => switchLayer('bone');
   function switchLayer(layer) {
@@ -123,17 +225,21 @@ export function wireControls({ viewer, getStructures, onLayer, onLang }) {
     onLayer && onLayer(layer);
   }
 
+  // cámara
   $('#btn-reset').onclick = () => viewer.reset();
   $('#btn-fit').onclick = () => viewer.fit();
 
-  $('#search').addEventListener('input', e => {
-    const q = e.target.value.trim().toLowerCase();
-    document.querySelectorAll('#list .item').forEach(el => {
-      el.style.display = !q || el.textContent.toLowerCase().includes(q) ? '' : 'none';
-    });
-  });
+  // búsqueda (texto sobre la lista ya filtrada por región)
+  $('#search').addEventListener('input', e => applySearchFilter(e.target.value));
 
-  return { repaintViewBtn: paintViewBtn };
+  // drawer / sheet móvil
+  $('#toggle-sidebar').onclick = () => {
+    $('.left').classList.contains('open') ? closeDrawer() : openDrawer();
+  };
+  $('#scrim').onclick = () => { closeDrawer(); closeInfoPanel(); };
+  $('#sheet-close').onclick = closeInfoPanel;
+
+  return { repaintViewBtn: paintViewBtn, setMode, getMode: () => currentMode, closeDrawer };
 }
 
 export function setStatus(key, cls = '') {
@@ -141,11 +247,7 @@ export function setStatus(key, cls = '') {
   el.textContent = t(key);
   el.className = 'status ' + cls;
 }
-
-export function showEmpty(show) {
-  $('#empty').classList.toggle('hidden', !show);
-}
-
+export function showEmpty(show) { $('#empty').classList.toggle('hidden', !show); }
 export function showProgress(show, pct = 0) {
   const p = $('#progress');
   p.classList.toggle('show', show);

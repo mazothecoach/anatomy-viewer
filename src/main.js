@@ -1,19 +1,24 @@
 import './style.css';
+import { params, validLang } from './params.js';
 import { createViewer } from './viewer.js';
 import {
-  renderInfo, clearInfo, buildList, setActiveListItem, wireControls,
-  setStatus, showEmpty, showProgress, applyStaticStrings
+  renderInfo, clearInfo, buildList, setActiveListItem, applySearchFilter,
+  buildRegionTabs, renderHighlightSummary, wireControls,
+  setStatus, showEmpty, showProgress, applyStaticStrings, openInfoPanel
 } from './ui.js';
-import { setLang, tf } from './i18n.js';
+import { setLang, t, tf } from './i18n.js';
 
 import muscles from './data/muscles.json';
 import bones from './data/bones.json';
+import painZones from './data/painZones.json';
+import physiqueGoals from './data/physiqueGoals.json';
 
 // ── Datos ──────────────────────────────────────────────────────────────────
-// En Fase 0 los JSON están vacíos; el resolver devuelve null y al hacer clic
-// se resalta la malla y se muestra su nombre crudo. El contenido se llena
-// tras verificar el spike de mallas de Z-Anatomy (no antes — ver PLAN.md §8).
 const structures = [...muscles, ...bones];
+const structById = new Map(structures.map(s => [s.id, s]));
+
+const REGION_ORDER = ['shoulder', 'arm', 'core', 'hip', 'thigh', 'leg'];
+const presentRegions = REGION_ORDER.filter(r => structures.some(s => s.region === r));
 
 function normalize(s) {
   return (s || '').toLowerCase().replace(/[_\-./]/g, ' ')
@@ -21,68 +26,119 @@ function normalize(s) {
     .replace(/\s+(dexter|sinister|left|right|l|r|sin|dex)$/g, '')
     .replace(/\s+/g, ' ').trim();
 }
-
-// Índice nombre-de-malla(normalizado) → estructura, a partir de meshNames.
 const meshIndex = new Map();
 structures.forEach(s => (s.meshNames || []).forEach(mn => meshIndex.set(normalize(mn), s)));
-function resolveMesh(meshName) {
-  return meshIndex.get(normalize(meshName)) || null;
-}
+function resolveMesh(meshName) { return meshIndex.get(normalize(meshName)) || null; }
 
-// ── Idioma ──────────────────────────────────────────────────────────────────
-setLang('es');
+// ── Estado de UI ─────────────────────────────────────────────────────────────
+let activeRegion = presentRegions.includes(params.region) ? params.region : null;
+let linkedIds = new Set();
+let modelLoaded = false;
+const isTouch = window.matchMedia('(pointer: coarse)').matches;
+const mqNarrow = window.matchMedia('(max-width: 760px)');
+
+// ── Idioma + clases de embebido (antes de crear el visor) ────────────────────
+setLang(validLang(params.lang) || 'es');
+if (params.compact) document.body.classList.add('compact');
+if (params.minimal) document.body.classList.add('minimal');
+if (params.bg) document.body.style.background = '#' + params.bg.replace(/^#/, '');
 applyStaticStrings();
+applyHudTouch();
 
 // ── Visor ────────────────────────────────────────────────────────────────────
 const canvas = document.getElementById('canvas');
 const viewer = createViewer(canvas, {
+  isMobile: isTouch,
   onSelect(sel) {
     if (!sel) { clearInfo(); setActiveListItem(null); return; }
     renderInfo(sel.struct, sel.meshName);
     setActiveListItem(sel.struct ? sel.struct.id : null);
+    openInfoPanel();
   }
 });
 
-let linkedIds = new Set();
-
+// ── Lista + región ────────────────────────────────────────────────────────────
 function refreshList() {
-  buildList(structures, linkedIds, (s) => {
-    if (viewer.highlightById(s.id)) {
-      renderInfo(s, (s.meshNames || [])[0] || '');
-    } else {
-      renderInfo(s, tf({ es: '(no está en el modelo actual)', en: '(not in current model)' }));
-    }
-    setActiveListItem(s.id);
-  });
+  const filtered = structures.filter(s => !activeRegion || s.region === activeRegion);
+  buildList(filtered, linkedIds, onListPick);
+  applySearchFilter(document.getElementById('search').value);
+}
+function onListPick(s) {
+  if (viewer.highlightById(s.id)) {
+    renderInfo(s, (s.meshNames || [])[0] || '');
+  } else {
+    renderInfo(s, tf({ es: '(no está en el modelo)', en: '(not in model)' }));
+  }
+  setActiveListItem(s.id);
+  openInfoPanel();
+  if (mqNarrow.matches) ui.closeDrawer();
+}
+function onRegion(region) {
+  activeRegion = region;
+  if (region) viewer.isolateRegion(s => s.region === region);
+  else viewer.clearIsolation();
+  refreshList();
 }
 
+// ── Dolor / Físico ────────────────────────────────────────────────────────────
+function applyHighlightSet(item, field) {
+  const ids = item[field] || [];
+  if (modelLoaded) viewer.highlightMany(ids);
+  const missing = ids.filter(id => !linkedIds.has(id));
+  renderHighlightSummary(item, structById, missing);
+  openInfoPanel();
+}
+function onPickPain(zone) { applyHighlightSet(zone, 'strengthen'); }
+function onPickPhysique(goal) { applyHighlightSet(goal, 'targetMuscles'); }
+
+function onMode(mode) {
+  // al volver a Explorar, re-aplica el aislamiento de región si lo había
+  if (mode === 'explore' && activeRegion) viewer.isolateRegion(s => s.region === activeRegion);
+}
+
+// ── HUD táctil ────────────────────────────────────────────────────────────────
+function applyHudTouch() {
+  if (isTouch) document.getElementById('hud').textContent = t('hud_touch');
+}
+
+// ── Cableado ───────────────────────────────────────────────────────────────────
 function relabelUI() {
   applyStaticStrings();
+  applyHudTouch();
+  buildRegionTabs(presentRegions, activeRegion, onRegion);
   refreshList();
-  clearInfo();
+  ui.repaintViewBtn();
+  ui.setMode(ui.getMode());
+  setStatusForModel();
 }
 
 const ui = wireControls({
   viewer,
-  getStructures: () => structures,
   onLayer: () => {},
-  onLang: () => { relabelUI(); ui.repaintViewBtn(); setStatusForModel(); }
+  onLang: relabelUI,
+  initialMode: params.mode === 'client' ? 'client' : 'coach',
+  onMode,
+  onRegion,
+  painZones,
+  physiqueGoals,
+  onPickPain,
+  onPickPhysique,
+  onListPick
 });
 
+buildRegionTabs(presentRegions, activeRegion, onRegion);
 clearInfo();
 refreshList();
 
+mqNarrow.addEventListener('change', () => viewer.fit());
+
 // ── Carga del modelo ──────────────────────────────────────────────────────────
-// Sample para el spike: cualquier .glb en /public/models. Reemplazar por el
-// modelo Z-Anatomy comprimido cuando el spike de mallas esté verificado.
-const MODEL_URL = `${import.meta.env.BASE_URL}models/sample.glb`;
-let modelLoaded = false;
+const MODEL_URL = params.model || `${import.meta.env.BASE_URL}models/sample.glb`;
 
 function setStatusForModel() {
   if (modelLoaded) {
-    const linked = linkedIds.size;
     setStatus('status_loaded', 'ok');
-    document.getElementById('status').textContent += ` · ${viewer.getMeshNames().length} meshes · ${linked} linked`;
+    document.getElementById('status').textContent += ` · ${viewer.getMeshNames().length} meshes · ${linkedIds.size} linked`;
   } else {
     setStatus('status_no_model');
   }
@@ -95,15 +151,16 @@ viewer.loadModel(MODEL_URL, { onProgress: p => showProgress(true, p) })
     viewer.applyResolver(resolveMesh);
     linkedIds = new Set(meshNames.map(resolveMesh).filter(Boolean).map(s => s.id));
     viewer.setLayer('muscle');
+    if (activeRegion) viewer.isolateRegion(s => s.region === activeRegion);
     modelLoaded = true;
     showProgress(false);
     showEmpty(false);
     refreshList();
     setStatusForModel();
-    console.info(`[spike] ${meshNames.length} mallas cargadas. Ejemplos:`, meshNames.slice(0, 20));
+    console.info(`[spike] ${meshNames.length} mallas. Ejemplos:`, meshNames.slice(0, 20));
   })
   .catch(err => {
-    console.warn('No se pudo cargar el modelo de muestra:', err);
+    console.warn('No se pudo cargar el modelo:', err);
     showProgress(false);
     showEmpty(true);
     setStatus('status_no_model');

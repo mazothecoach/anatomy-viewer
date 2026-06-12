@@ -2,14 +2,20 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
   <title>Visor Anatómico — Mazothecoach</title>
 </head>
 <body>
   <div id="app">
     <header class="topbar">
+      <button id="toggle-sidebar" class="seg only-mobile" data-i18n="sidebar_toggle"></button>
       <h1 id="app-title">VISOR ANATÓMICO</h1>
       <span class="sub" data-i18n="tagline"></span>
+      <div id="mode-switch" class="seg-group">
+        <button id="mode-explore" class="seg active" data-i18n="mode_explore"></button>
+        <button id="mode-pain" class="seg" data-i18n="mode_pain"></button>
+        <button id="mode-physique" class="seg" data-i18n="mode_physique"></button>
+      </div>
       <span class="spacer"></span>
       <div class="toggles">
         <button id="toggle-view" class="seg" title="Vista" data-i18n-title="view_toggle"></button>
@@ -25,10 +31,17 @@
         <button id="layer-bone" class="layer-btn" data-i18n="bones"></button>
       </div>
 
-      <h3 data-i18n="search"></h3>
-      <input id="search" type="search" autocomplete="off" data-i18n-ph="search_ph" />
+      <div id="explore-panel">
+        <h3 data-i18n="region"></h3>
+        <div id="region-tabs" class="region-tabs"></div>
 
-      <div id="list" class="list"></div>
+        <h3 data-i18n="search"></h3>
+        <input id="search" type="search" autocomplete="off" data-i18n-ph="search_ph" />
+
+        <div id="list" class="list"></div>
+      </div>
+
+      <div id="picker" class="picker hidden"></div>
     </aside>
 
     <main class="stage">
@@ -48,8 +61,12 @@
     </main>
 
     <aside class="right">
+      <button id="sheet-handle" class="only-mobile" aria-hidden="true"></button>
+      <button id="sheet-close" class="only-mobile" data-i18n-title="close" title="Cerrar">✕</button>
       <div id="info" class="info"></div>
     </aside>
+
+    <div id="scrim" class="scrim"></div>
 
     <footer class="credit">
       <span data-i18n="credit"></span>

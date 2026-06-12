@@ -7,6 +7,10 @@ contenido es bilingüe `{ "es": "...", "en": "..." }`.
 > Estado Fase 0: los archivos están **vacíos** (`[]`). No se llenan hasta verificar el
 > spike de mallas de Z-Anatomy (PLAN.md §8, Fase 0). No avanzar a contenido antes.
 
+**`region`** (enum canónico, dirige las pestañas de región): `shoulder | arm | core | hip | thigh | leg`.
+**`strengthen[]`** (painZones) y **`targetMuscles[]`** (physiqueGoals) son arrays de **ids de músculo**
+para el resaltado múltiple en 3D.
+
 ## muscles.json
 
 ```json
@@ -43,7 +47,7 @@ Misma forma, `layer: "bone"`, sin `origin/insertion`, con `articulations` (con q
   "id": "humerus",
   "meshNames": ["Humerus_l", "Humerus_r"],
   "layer": "bone",
-  "region": "upper_limb",
+  "region": "arm",
   "name": { "es": "Húmero", "en": "Humerus" },
   "location": { "es": "Hueso del brazo", "en": "Arm bone" },
   "articulations": ["scapula", "radius", "ulna"]
