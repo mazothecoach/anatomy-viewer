@@ -177,7 +177,7 @@ function romArc(deg) {
     <text x="40" y="13" text-anchor="middle" fill="#c6ff3d" font-size="12" font-family="sans-serif">${deg}°</text>
   </svg>`;
 }
-export function renderJoint(joint, structById) {
+export function renderJoint(joint, structById, animate) {
   const info = $('#info');
   const boneName = id => { const s = structById.get(id); return s ? tf(s.name) : id; };
   const movs = (joint.movements || []).map(m => {
@@ -196,6 +196,9 @@ export function renderJoint(joint, structById) {
     ${joint.type ? `<dt class="hs-label">${t('joint_type')}</dt><dd style="font-size:13px;margin:2px 0 0">${escapeHtml(tf(joint.type))}</dd>` : ''}
     <dt class="hs-label">${t('range_of_motion')}</dt>
     <div class="mov-list">${movs}</div>
+    ${animate ? `<dt class="hs-label">${t('animate_label')}</dt>
+      <div class="animate-ctrl"><input type="range" id="joint-animate" min="-50" max="20" step="1" value="0" />
+      <span class="animate-hint">${t('animate_hint')}</span></div>` : ''}
     ${joint.coupledMotion ? `<div class="highlight-summary"><strong>${t('coupled_motion')}:</strong> ${escapeHtml(tf(joint.coupledMotion))}</div>` : ''}
     ${joint.notes ? `<div class="psl-note coach-only">${escapeHtml(tf(joint.notes))}</div>` : ''}
   </div>`;

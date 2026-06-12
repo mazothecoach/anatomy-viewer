@@ -107,11 +107,35 @@ function setLayerUI(layer) {
   document.getElementById('layer-bone').classList.toggle('active', layer === 'bone');
   viewer.setLayer(layer);
 }
+// Articulaciones animables (reparenteo sin rig, solo en la pierna sola).
+// Primer test: tobillo → el pie rota sobre la base de tibia/peroné.
+const ARTICULABLE = {
+  ankle: { ref: ['tibia', 'fibula'], edge: 'min', axis: 'x' }
+};
+function loadLowerLimbThen(cb) {
+  if (modelLoaded && modelSelect.value === 'models/lower-limb.glb' && !bothSides.checked) { cb(); return; }
+  modelSelect.value = 'models/lower-limb.glb';
+  bothSides.checked = false;
+  updateFlexVisibility();
+  loadCurrent().then(cb);
+}
 function onPickJoint(joint) {
-  setLayerUI('bone'); // mostrar el esqueleto para ver los huesos que se mueven
-  if (modelLoaded) viewer.highlightMany(joint.bones || []);
-  renderJoint(joint, structById);
+  const art = ARTICULABLE[joint.id];
+  renderJoint(joint, structById, !!art);
   openInfoPanel();
+  if (art) {
+    loadLowerLimbThen(() => {
+      setLayerUI('bone');
+      const refNames = art.ref.flatMap(id => (structById.get(id)?.meshNames || []));
+      viewer.setupArticulation(refNames, art.edge);
+      const sl = document.getElementById('joint-animate');
+      // negado: izquierda = flexión plantar (toes abajo), derecha = dorsiflexión (toes arriba)
+      if (sl) sl.oninput = e => viewer.setFlex(-Number(e.target.value), art.axis);
+    });
+    return;
+  }
+  setLayerUI('bone'); // esqueleto para ver los huesos que se mueven
+  if (modelLoaded) viewer.highlightMany(joint.bones || []);
 }
 
 function onMode(mode) {

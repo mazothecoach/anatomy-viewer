@@ -41,9 +41,9 @@ const STRINGS = {
     location: 'Ubicación',
     about_label: 'Acerca de',
     about_title: 'Acerca de / Créditos',
-    about_content: 'Visor educativo de Mazothecoach. El contenido de entrenamiento se basa en el método Pre-Script (Dr. Jordan Shallow) y en fuentes estándar de anatomía y ciencias del ejercicio. Es interpretación y material original propio; no reproduce ningún manual.',
+    about_content: 'Visor educativo SIN FINES DE LUCRO de Mazothecoach. Parte del contenido de entrenamiento está informado por el método Pre-Script (Dr. Jordan Shallow); el resto proviene de fuentes estándar de anatomía y ciencias del ejercicio y de interpretación propia. No reproduce ningún manual ni implica afiliación.',
     about_model: 'Modelo anatómico 3D: Z-Anatomy (CC BY-SA 4.0), derivado de BodyParts3D.',
-    about_original: 'Contenido educativo © Mazothecoach. Uso educativo.',
+    about_original: 'Contenido educativo © Mazothecoach. Uso educativo, sin fines de lucro.',
     mode_explore: 'Explorar',
     mode_pain: 'Dolor',
     mode_physique: 'Físico',
@@ -92,7 +92,10 @@ const STRINGS = {
     coupled_motion: 'Movimiento acoplado',
     plane_sagittal: 'Sagital',
     plane_frontal: 'Frontal',
-    plane_transverse: 'Transverso'
+    plane_transverse: 'Transverso',
+    animate_label: 'Animar movimiento',
+    animate_hint: 'Mueve el pie: flexión plantar ↔ dorsiflexión',
+    animate_loading: 'Cargando la pierna para animar…'
   },
   en: {
     tagline: 'Muscles, bones & ranges per exercise',
@@ -133,9 +136,9 @@ const STRINGS = {
     location: 'Location',
     about_label: 'About',
     about_title: 'About / Credits',
-    about_content: 'Educational viewer by Mazothecoach. The training content is informed by the Pre-Script method (Dr. Jordan Shallow) and standard anatomy and exercise-science sources. It is original interpretation and material; it does not reproduce any manual.',
+    about_content: 'NOT-FOR-PROFIT educational viewer by Mazothecoach. Some of the training content is informed by the Pre-Script method (Dr. Jordan Shallow); the rest comes from standard anatomy and exercise-science sources and original interpretation. It does not reproduce any manual and implies no affiliation.',
     about_model: '3D anatomical model: Z-Anatomy (CC BY-SA 4.0), derived from BodyParts3D.',
-    about_original: 'Educational content © Mazothecoach. Educational use.',
+    about_original: 'Educational content © Mazothecoach. Educational, not-for-profit use.',
     mode_explore: 'Explore',
     mode_pain: 'Pain',
     mode_physique: 'Physique',
@@ -184,7 +187,10 @@ const STRINGS = {
     coupled_motion: 'Coupled motion',
     plane_sagittal: 'Sagittal',
     plane_frontal: 'Frontal',
-    plane_transverse: 'Transverse'
+    plane_transverse: 'Transverse',
+    animate_label: 'Animate movement',
+    animate_hint: 'Move the foot: plantarflexion ↔ dorsiflexion',
+    animate_loading: 'Loading the leg to animate…'
   }
 };
 

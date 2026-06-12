@@ -182,29 +182,32 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
 
   // ── Articulación básica (sin rig): flexión de rodilla del tren inferior ──────
   let flexPivot = null;
-  function setupLowerFlex() {
+  // Articula reparentando todo lo que está por debajo de un eje (la articulación)
+  // a un pivote, y rotándolo. refNames = mallas del hueso de referencia; edge = 'max'
+  // (parte alta, p.ej. rodilla = tope de la tibia) o 'min' (parte baja, p.ej. tobillo
+  // = base de tibia/peroné). Si refNames es null usa la rodilla (tibia/rótula).
+  function setupArticulation(refNames, edge) {
     teardownFlex();
     if (!model || !meshes.length) return false;
-    const ref = meshes.filter(m => /tibia|patella/i.test(m.name));
+    const set = refNames ? new Set(refNames) : null;
+    const ref = set ? meshes.filter(m => set.has(m.name)) : meshes.filter(m => /tibia|patella/i.test(m.name));
     if (!ref.length) return false;
-    const refBox = new THREE.Box3();
-    ref.forEach(m => refBox.expandByObject(m));
-    const kneeY = refBox.max.y; // parte alta de la tibia ≈ eje de la rodilla
-    const kneeC = refBox.getCenter(new THREE.Vector3()); // x/z de la rodilla real
+    const box = new THREE.Box3();
+    ref.forEach(m => box.expandByObject(m));
+    const pivotY = edge === 'min' ? box.min.y : box.max.y;
+    const c = box.getCenter(new THREE.Vector3());
     flexPivot = new THREE.Group();
     model.add(flexPivot);
-    flexPivot.position.copy(model.worldToLocal(new THREE.Vector3(kneeC.x, kneeY, kneeC.z)));
-    // todo lo que esté por debajo de la rodilla se mueve con la pierna
-    const below = meshes.filter(m => {
-      const c = new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3());
-      return c.y < kneeY;
-    });
+    flexPivot.position.copy(model.worldToLocal(new THREE.Vector3(c.x, pivotY, c.z)));
+    const below = meshes.filter(m => new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3()).y < pivotY);
     below.forEach(m => flexPivot.attach(m));
     return below.length > 0;
   }
-  function setFlex(deg) {
+  function setupLowerFlex() { return setupArticulation(null, 'max'); } // rodilla (compat)
+  function setFlex(deg, axis) {
     if (!flexPivot && !setupLowerFlex()) return false;
-    flexPivot.rotation.x = deg * Math.PI / 180;
+    flexPivot.rotation.set(0, 0, 0);
+    flexPivot.rotation[axis === 'z' ? 'z' : 'x'] = deg * Math.PI / 180;
     return true;
   }
   function teardownFlex() {
@@ -302,7 +305,7 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
 
   return {
     loadModel, loadModels, applyResolver, setLayer, isolateRegion, clearIsolation,
-    setHideVessels, setFlex, teardownFlex,
+    setHideVessels, setupArticulation, setFlex, teardownFlex,
     reset, fit, frameModel,
     highlightMesh, highlightById, highlightMany, clearHighlight,
     getMeshNames: () => meshes.map(m => m.name),
