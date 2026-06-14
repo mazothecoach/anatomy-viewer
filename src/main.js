@@ -132,6 +132,9 @@ function setLayerUI(layer) {
   document.getElementById('layer-bone').classList.toggle('active', layer === 'bone');
   viewer.setLayer(layer);
 }
+// Excluir tren inferior + core/axial del "box" del brazo (por si la caja roza el muslo/torso).
+const LOWER_BODY_RE = /femur|tibia|fibula|patella|gluteus|adductor|gracilis|sartorius|tensor_fasc|vastus|rectus_femoris|biceps_femoris|semitendinosus|semimembranosus|iliopsoas|piriformis|deep_external|hip_bone|sacrum|coccyx|pubis|ischium|ilium|psoas|rectus_abdom|abdominal_oblique|transverse_abdom|quadratus|erector|multifidus|longissimus|iliocostalis|spinalis|diaphragm|\brib|sternum|costal|lumbar_vertebra|thoracic_vertebra/i;
+
 // Articulaciones animables sobre el cuerpo completo + ambos lados.
 // moving/pivot = patrones de nombre de malla; el visor filtra además por LADO
 // (signo de X) para mover solo una extremidad. edge = borde Y del hueso de
@@ -152,13 +155,15 @@ const ARTICULABLE = {
     signs: [-1, 1, 1, -1, 1, -1] // flexión: pierna adelante (verificado)
   },
   glenohumeral: {
-    pivot: /humerusr/i, edge: 'max',
+    pivot: /humerusr/i, edge: 'max', box: true, // brazo entero como bloque (nada volando)
     moving: /humerusr|radiusr|ulnar|deltoid|brachii|brachialis|coracobrachialis|triceps_brachii|brachioradialis|pronator|supinator|carpal|capitate|hamate|lunate|pisiform|scaphoid|triquetrum|trapezium|trapezoid|metacarp/i,
+    also: /scapular|clavicler/i, exclude: LOWER_BODY_RE,
     signs: [-1, 1, 1, -1, 1, -1] // flexión: brazo adelante (verificado)
   },
   scapulothoracic: {
-    pivot: /scapular(?!is)/i, edge: 'max',
-    moving: /scapular|supraspinatus|infraspinatus|teres_minor|teres_major|subscapularis|serratus|deltoid/i,
+    pivot: /scapular(?!is)/i, edge: 'max', box: true, // complejo del hombro como bloque
+    moving: /scapular|supraspinatus|infraspinatus|teres_minor|teres_major|subscapularis|serratus|deltoid|humerusr|radiusr|ulnar|brachii|brachialis|coracobrachialis|triceps_brachii|carpal|metacarp/i,
+    also: /clavicler/i, exclude: LOWER_BODY_RE,
     signs: [1, -1, 1, -1, 1, -1]
   }
 };
@@ -171,7 +176,7 @@ function onPickJoint(joint) {
   setLayerUI(null); // huesos + músculos juntos (se mueven en conjunto)
   if (!modelLoaded) return;
   // Articula sobre UN lado (el visor filtra por signo de X) del cuerpo completo.
-  const ok = art && viewer.setupArticulation({ movingRe: art.moving, pivotRe: art.pivot, edge: art.edge, side: 'R', below: art.below, alsoRe: art.also, excludeRe: art.exclude });
+  const ok = art && viewer.setupArticulation({ movingRe: art.moving, pivotRe: art.pivot, edge: art.edge, side: 'R', below: art.below, box: art.box, alsoRe: art.also, excludeRe: art.exclude });
   if (!ok) { viewer.highlightMany(joint.bones || []); return; }
   const sl = document.getElementById('joint-animate');
   const movEls = document.querySelectorAll('#info .mov-sel');

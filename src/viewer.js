@@ -206,26 +206,41 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   // si no, mueve solo las mallas que matchean movingRe (para hombro/escápula).
   function setupArticulation(opts = {}) {
     teardownFlex();
-    const { movingRe, pivotRe, edge = 'max', side = 'R', below = false, alsoRe, excludeRe } = opts;
+    const { movingRe, pivotRe, edge = 'max', side = 'R', below = false, box = false, alsoRe, excludeRe } = opts;
     if (!model || !meshes.length || !pivotRe) return false;
     const wantSign = side === 'L' ? -1 : 1;
     const ctr = new Map();
     const EPS = 0.02; // umbral de línea media: estructuras axiales (sacro, columna) NO se articulan
     const onSide = m => { const x = centerOf(m, ctr).x; return Math.abs(x) > EPS && Math.sign(x) === wantSign; };
-    const excl = m => excludeRe && excludeRe.test(m.name); // p.ej. pelvis fija al mover la cadera
+    const excl = m => excludeRe && excludeRe.test(m.name); // estructuras que se quedan fijas
+    const also = m => alsoRe && alsoRe.test(m.name);
     // Hueso de referencia del lado elegido → define el centro del pivote.
     const ref = meshes.filter(m => pivotRe.test(m.name) && onSide(m));
     if (!ref.length) return false;
-    const box = new THREE.Box3();
-    ref.forEach(m => box.expandByObject(m));
-    const pivotY = edge === 'min' ? box.min.y : box.max.y;
-    const c = box.getCenter(new THREE.Vector3());
+    const pbox = new THREE.Box3();
+    ref.forEach(m => pbox.expandByObject(m));
+    const pivotY = edge === 'min' ? pbox.min.y : pbox.max.y;
+    const c = pbox.getCenter(new THREE.Vector3());
     flexPivot = new THREE.Group();
     model.add(flexPivot);
     flexPivot.position.copy(model.worldToLocal(new THREE.Vector3(c.x, pivotY, c.z)));
-    const moving = below
-      ? meshes.filter(m => onSide(m) && !excl(m) && (centerOf(m, ctr).y < pivotY || (alsoRe && alsoRe.test(m.name)))) // todo el bloque distal del lado
-      : meshes.filter(m => movingRe && movingRe.test(m.name) && onSide(m) && !excl(m)); // por nombre
+    let moving;
+    if (box) {
+      // Caja del segmento = bbox de las mallas nombradas; mueve TODO lo que cae
+      // dentro (incluidas piezas sin nombre) para que nada quede volando.
+      const named = meshes.filter(m => movingRe && movingRe.test(m.name) && onSide(m) && !excl(m));
+      if (!named.length) return false;
+      const seg = new THREE.Box3();
+      named.forEach(m => seg.expandByObject(m));
+      const sz = seg.getSize(new THREE.Vector3());
+      seg.expandByScalar((Math.min(sz.x, sz.y, sz.z) || 0.1) * 0.2);
+      moving = meshes.filter(m => onSide(m) && !excl(m) && (seg.containsPoint(centerOf(m, ctr)) || also(m)));
+    } else if (below) {
+      // Todo el bloque distal del lado (por debajo del pivote en Y) + extras.
+      moving = meshes.filter(m => onSide(m) && !excl(m) && (centerOf(m, ctr).y < pivotY || also(m)));
+    } else {
+      moving = meshes.filter(m => movingRe && movingRe.test(m.name) && onSide(m) && !excl(m));
+    }
     moving.forEach(m => flexPivot.attach(m));
     return moving.length > 0;
   }
