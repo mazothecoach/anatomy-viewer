@@ -21,6 +21,7 @@ El modelo está basado en **Z-Anatomy** (https://www.z-anatomy.com/), atlas 3D l
 
 - Licencia: https://creativecommons.org/licenses/by-sa/4.0/
 - Modelos regionales de muestra: **AnatomyTool / Open3DModel** (https://anatomytool.org/open3dmodel), también CC BY-SA, derivados de Z-Anatomy / BodyParts3D.
+- Músculos del abdomen/core (recto, oblicuos, transverso, cuadrado lumbar, psoas, diafragma): **AnatomyTool Open3DModel — "Muscles of thorax, abdomen and back"** (CC BY-SA 4.0). Recortado a solo los músculos del core para usarlo como overlay.
 
 ### Obligaciones de CC BY-SA 4.0
 1. **Atribución** — crédito visible a Z-Anatomy + licencia (presente en el pie de la app y aquí).

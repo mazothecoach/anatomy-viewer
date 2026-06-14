@@ -1441,7 +1441,7 @@
   },
   {
     "id": "rectus_abdominis",
-    "meshNames": [],
+    "meshNames": ["Rectus_abdominal_muscler"],
     "layer": "muscle",
     "region": "core",
     "name": {
@@ -1505,7 +1505,7 @@
   },
   {
     "id": "external_oblique",
-    "meshNames": [],
+    "meshNames": ["External_abdominal_oblique_muscler"],
     "layer": "muscle",
     "region": "core",
     "name": {
@@ -1569,7 +1569,7 @@
   },
   {
     "id": "internal_oblique",
-    "meshNames": [],
+    "meshNames": ["Internal_abdominal_oblique_muscler"],
     "layer": "muscle",
     "region": "core",
     "name": {
@@ -1632,7 +1632,7 @@
   },
   {
     "id": "transversus_abdominis",
-    "meshNames": [],
+    "meshNames": ["Transverse_abdominal_muscler"],
     "layer": "muscle",
     "region": "core",
     "name": {
@@ -1823,7 +1823,7 @@
   },
   {
     "id": "quadratus_lumborum",
-    "meshNames": [],
+    "meshNames": ["Quadratus_lumborum_muscler"],
     "layer": "muscle",
     "region": "core",
     "name": {
@@ -1885,7 +1885,7 @@
   },
   {
     "id": "diaphragm",
-    "meshNames": [],
+    "meshNames": ["Diaphragm"],
     "layer": "muscle",
     "region": "core",
     "name": {

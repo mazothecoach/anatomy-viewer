@@ -245,7 +245,7 @@ mqNarrow.addEventListener('change', () => viewer.fit());
 
 // ── Carga del modelo ──────────────────────────────────────────────────────────
 // Vista principal: SIEMPRE cuerpo completo + ambos lados (espejo), vasos ocultos.
-const FULL_BODY = ['models/sample.glb', 'models/lower-limb.glb']; // superior + inferior
+const FULL_BODY = ['models/sample.glb', 'models/lower-limb.glb', 'models/abdomen.glb']; // superior + inferior + core
 const modelSelect = document.getElementById('model-select');
 // Los modelos de músculo vienen de un lado y se reflejan; el esqueleto ya es bilateral.
 const shouldMirror = url => !/overview-skeleton/.test(url);
