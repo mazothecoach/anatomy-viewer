@@ -132,8 +132,11 @@ function setLayerUI(layer) {
   document.getElementById('layer-bone').classList.toggle('active', layer === 'bone');
   viewer.setLayer(layer);
 }
-// Excluir tren inferior + core/axial del "box" del brazo (por si la caja roza el muslo/torso).
-const LOWER_BODY_RE = /femur|tibia|fibula|patella|gluteus|adductor|gracilis|sartorius|tensor_fasc|vastus|rectus_femoris|biceps_femoris|semitendinosus|semimembranosus|iliopsoas|piriformis|deep_external|hip_bone|sacrum|coccyx|pubis|ischium|ilium|psoas|rectus_abdom|abdominal_oblique|transverse_abdom|quadratus|erector|multifidus|longissimus|iliocostalis|spinalis|diaphragm|\brib|sternum|costal|lumbar_vertebra|thoracic_vertebra/i;
+// Excluir tren inferior + core/axial al articular el brazo (por si el patrón roza otra zona).
+const LOWER_BODY_RE = /femur|tibia|fibula|patella|gluteus|adductor|gracilis|sartorius|tensor_fasc|vastus|rectus_femoris|biceps_femoris|semitendinosus|semimembranosus|iliopsoas|piriformis|deep_external|hip_bone|sacrum|coccyx|pubis|ischium|ilium|psoas|rectus_abdom|abdominal_oblique|transverse_abdom|quadratus|erector|multifidus|longissimus|iliocostalis|spinalis|diaphragm|\brib|sternum|costal|lumbar_vertebra|thoracic_vertebra|hallucis|digitorum_longus|digitorum_brevis|peroneus|tibialis|gastrocnem|soleus/i;
+// Brazo: huesos (húmero, radio, cúbito, mano) + músculos del brazo/antebrazo + deltoides.
+// NO incluye pec/dorsal/manguito (se anclan al tronco/escápula y se estirarían en lámina).
+const ARM_RE = /humerusr|radiusr|ulnar|deltoid|biceps_brachii|triceps_brachii|brachialis|coracobrachialis|brachioradialis|pronator|supinator|flexor_carpi|extensor_carpi|flexor_digitorum_superficialis|flexor_digitorum_profundus|extensor_digitorum_muscle|extensor_digiti_minimi|extensor_indicis|flexor_pollicis|extensor_pollicis|abductor_pollicis|palmaris|anconeus|carpal|capitate|hamate|lunate|pisiform|scaphoid|triquetrum|trapezium|trapezoid|metacarp|lumbrical|interossei|opponens|adductor_pollicis|_of_hand/i;
 
 // Articulaciones animables sobre el cuerpo completo + ambos lados.
 // moving/pivot = patrones de nombre de malla; el visor filtra además por LADO
@@ -155,15 +158,16 @@ const ARTICULABLE = {
     signs: [-1, 1, 1, -1, 1, -1] // flexión: pierna adelante (verificado)
   },
   glenohumeral: {
-    pivot: /humerusr/i, edge: 'max', box: true, // brazo entero como bloque (nada volando)
-    moving: /humerusr|radiusr|ulnar|deltoid|brachii|brachialis|coracobrachialis|triceps_brachii|brachioradialis|pronator|supinator|carpal|capitate|hamate|lunate|pisiform|scaphoid|triquetrum|trapezium|trapezoid|metacarp/i,
-    also: /scapular|clavicler/i, exclude: LOWER_BODY_RE,
+    // Solo el brazo (huesos + músculos del brazo). NO pec/dorsal/manguito (láminas
+    // que se anclan al tronco y se estirarían). El conectivo se excluye global.
+    pivot: /humerusr/i, edge: 'max', moving: ARM_RE, exclude: LOWER_BODY_RE,
     signs: [-1, 1, 1, -1, 1, -1] // flexión: brazo adelante (verificado)
   },
   scapulothoracic: {
-    pivot: /scapular(?!is)/i, edge: 'max', box: true, // complejo del hombro como bloque
-    moving: /scapular|supraspinatus|infraspinatus|teres_minor|teres_major|subscapularis|serratus|deltoid|humerusr|radiusr|ulnar|brachii|brachialis|coracobrachialis|triceps_brachii|carpal|metacarp/i,
-    also: /clavicler/i, exclude: LOWER_BODY_RE,
+    // Complejo del hombro (escápula + manguito + deltoides + brazo) se mueve junto.
+    pivot: /scapular(?!is)/i, edge: 'max',
+    moving: /scapular|supraspinatus|infraspinatus|teres_minor|teres_major|subscapularis|serratus|clavicler|deltoid/i,
+    also: ARM_RE, exclude: LOWER_BODY_RE,
     signs: [1, -1, 1, -1, 1, -1]
   }
 };

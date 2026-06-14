@@ -51,6 +51,9 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   const VESSEL_RE = /artery|arteries|arterial|vein|veins|venous|\bvena\b|vascular|vessel|nerve|nervus|plexus|lymph|ganglion|c\d ?root|thyrocervical|costocervical|(palmar|plantar|venous|dorsal venous).{0,6}(arch|network)/i;
   // Fascia (envoltorio que estorba la selección). NO el músculo tensor fasciae latae.
   const FASCIA_RE = /(brachial|antebrachial|crural|thoracolumbar)_fascia|fascia_lata|deep_fascia|fascia_of|aponeuros|retinacul/i;
+  // Tejido conectivo/blando que NO se mueve limpio al articular (vuela en pedazos):
+  // tendones, ligamentos, fascia, cartílagos, cápsulas, bursas, nervios, vasos.
+  const CONNECTIVE_RE = /tendon|tendinous|ligament|\bfascia|aponeuros|retinacul|bursa|synovial|art_cart|articular_cartilage|cartilage|capsule|capsular|membrane|labrum|meniscus|intervertebral_disc|\braphe|\bseptum|fat_pad|sheath|nerve|nervus|plexus|ganglion|artery|arteries|\bvein\b|veins|venous/i;
 
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -63,11 +66,19 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
   resize();
 
-  (function animate() {
-    requestAnimationFrame(animate);
+  let loopId = null;
+  function animate() {
+    loopId = requestAnimationFrame(animate);
     controls.update();
     renderer.render(scene, camera);
-  })();
+  }
+  animate();
+  // Pausar el loop deja la página inactiva (permite capturar screenshots);
+  // al reanudar vuelve a animar. Renderiza un frame al pausar.
+  function setLoop(on) {
+    if (on && loopId == null) animate();
+    else if (!on && loopId != null) { cancelAnimationFrame(loopId); loopId = null; renderer.render(scene, camera); }
+  }
 
   function clearModel() {
     teardownFlex();
@@ -186,6 +197,21 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
     controls.target.set(0, 1, 0);
     controls.update();
   }
+  // Enfoca (zoom) en una estructura concreta: mantiene la dirección de la cámara,
+  // recentra la órbita en esa estructura y la encuadra. `pt` opcional = punto exacto.
+  function focusOn(target, pt) {
+    if (!target) return;
+    const box = new THREE.Box3().setFromObject(target);
+    if (box.isEmpty()) return;
+    const size = box.getSize(new THREE.Vector3());
+    const center = pt || box.getCenter(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z) || 0.1;
+    const dist = (maxDim / 2) / Math.tan((camera.fov * Math.PI / 180) / 2) * 2.4;
+    const dir = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+    controls.target.copy(center);
+    camera.position.copy(center).addScaledVector(dir, dist);
+    controls.update();
+  }
 
   // ── Articulación sin rig: por REGIÓN + LADO, no por plano Y ──────────────────
   // El modelo es cuerpo completo con ambos lados (mallas espejo con el MISMO
@@ -224,22 +250,15 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
     flexPivot = new THREE.Group();
     model.add(flexPivot);
     flexPivot.position.copy(model.worldToLocal(new THREE.Vector3(c.x, pivotY, c.z)));
+    // Solo movemos lo que se mueve LIMPIO: nada de tejido conectivo (vuela en pedazos).
+    const clean = m => onSide(m) && !excl(m) && !CONNECTIVE_RE.test(m.name);
     let moving;
-    if (box) {
-      // Caja del segmento = bbox de las mallas nombradas; mueve TODO lo que cae
-      // dentro (incluidas piezas sin nombre) para que nada quede volando.
-      const named = meshes.filter(m => movingRe && movingRe.test(m.name) && onSide(m) && !excl(m));
-      if (!named.length) return false;
-      const seg = new THREE.Box3();
-      named.forEach(m => seg.expandByObject(m));
-      const sz = seg.getSize(new THREE.Vector3());
-      seg.expandByScalar((Math.min(sz.x, sz.y, sz.z) || 0.1) * 0.2);
-      moving = meshes.filter(m => onSide(m) && !excl(m) && (seg.containsPoint(centerOf(m, ctr)) || also(m)));
-    } else if (below) {
+    if (below) {
       // Todo el bloque distal del lado (por debajo del pivote en Y) + extras.
-      moving = meshes.filter(m => onSide(m) && !excl(m) && (centerOf(m, ctr).y < pivotY || also(m)));
+      moving = meshes.filter(m => clean(m) && (centerOf(m, ctr).y < pivotY || also(m)));
     } else {
-      moving = meshes.filter(m => movingRe && movingRe.test(m.name) && onSide(m) && !excl(m));
+      // Por nombre: solo los huesos/músculos curados del segmento (nada vuela).
+      moving = meshes.filter(m => clean(m) && (movingRe && movingRe.test(m.name) || also(m)));
     }
     moving.forEach(m => flexPivot.attach(m));
     return moving.length > 0;
@@ -348,10 +367,21 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   });
   canvas.addEventListener('pointercancel', e => { activePointers.delete(e.pointerId); });
 
+  // Doble clic = zoom/enfoque a la estructura donde se hace clic (no al centro de todo).
+  canvas.addEventListener('dblclick', e => {
+    if (!model) return;
+    const rect = canvas.getBoundingClientRect();
+    pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
+    const hits = raycaster.intersectObjects(meshes.filter(m => m.visible), false);
+    if (hits.length) focusOn(hits[0].object, hits[0].point);
+  });
+
   return {
     loadModel, loadModels, applyResolver, setLayer, isolateRegion, clearIsolation,
-    setHideVessels, setHideFascia, setupArticulation, setFlex, teardownFlex,
-    reset, fit, frameModel,
+    setHideVessels, setHideFascia, setupArticulation, setFlex, teardownFlex, setLoop,
+    reset, fit, frameModel, focusOn,
     highlightMesh, highlightById, highlightMany, clearHighlight,
     getMeshNames: () => meshes.map(m => m.name),
     hasModel: () => !!model,
