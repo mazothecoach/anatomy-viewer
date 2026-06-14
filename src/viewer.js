@@ -46,8 +46,11 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   let currentLayer = null;          // 'muscle' | 'bone' | null
   let currentRegionFilter = null;   // predicate(struct) → bool, o null
   let hideVessels = false;
+  let hideFascia = true; // la fascia envuelve y tapa los músculos: oculta por defecto
   // Vasos y nervios (distraen): arterias, venas, plexos, raíces, redes/arcos vasculares.
   const VESSEL_RE = /artery|arteries|arterial|vein|veins|venous|\bvena\b|vascular|vessel|nerve|nervus|plexus|lymph|ganglion|c\d ?root|thyrocervical|costocervical|(palmar|plantar|venous|dorsal venous).{0,6}(arch|network)/i;
+  // Fascia (envoltorio que estorba la selección). NO el músculo tensor fasciae latae.
+  const FASCIA_RE = /(brachial|antebrachial|crural|thoracolumbar)_fascia|fascia_lata|deep_fascia|fascia_of|aponeuros|retinacul/i;
 
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -142,13 +145,17 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   function vesselOK(m) {
     return !hideVessels || !VESSEL_RE.test((m.name || '').replace(/_/g, ' '));
   }
+  function fasciaOK(m) {
+    return !hideFascia || !FASCIA_RE.test(m.name || '');
+  }
   function applyVisibility() {
-    meshes.forEach(m => { m.visible = layerOK(m) && regionOK(m) && vesselOK(m); });
+    meshes.forEach(m => { m.visible = layerOK(m) && regionOK(m) && vesselOK(m) && fasciaOK(m); });
   }
   function setLayer(layer) { currentLayer = layer; applyVisibility(); }
   function isolateRegion(pred) { currentRegionFilter = pred; applyVisibility(); }
   function clearIsolation() { currentRegionFilter = null; applyVisibility(); }
   function setHideVessels(b) { hideVessels = b; applyVisibility(); }
+  function setHideFascia(b) { hideFascia = b; applyVisibility(); }
 
   // ── Encuadre ──────────────────────────────────────────────────────────────
   function frameModel() {
@@ -187,18 +194,25 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   // mueven por patrón de nombre Y por lado (signo de X en el mundo), y colocamos
   // el pivote en el borde del hueso de referencia de ESE lado.
   let flexPivot = null;
-  const centerX = m => new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3()).x;
+  const centerOf = (m, cache) => {
+    if (cache.has(m)) return cache.get(m);
+    const c = new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3());
+    cache.set(m, c); return c;
+  };
 
-  // opts = { movingRe, pivotRe, edge:'min'|'max', side:'L'|'R' }
+  // opts = { pivotRe, edge:'min'|'max', side:'L'|'R', movingRe?, below? }
+  // below=true → mueve TODO el segmento distal del lado (por debajo del pivote en
+  // Y), como bloque rígido (huesos + músculos + ligamentos), sin que se separen.
+  // si no, mueve solo las mallas que matchean movingRe (para hombro/escápula).
   function setupArticulation(opts = {}) {
     teardownFlex();
-    const { movingRe, pivotRe, edge = 'max', side = 'R' } = opts;
-    if (!model || !meshes.length || !movingRe || !pivotRe) return false;
+    const { movingRe, pivotRe, edge = 'max', side = 'R', below = false, alsoRe } = opts;
+    if (!model || !meshes.length || !pivotRe) return false;
     const wantSign = side === 'L' ? -1 : 1;
-    const sx = new Map();
-    const sideOf = m => { if (!sx.has(m)) sx.set(m, Math.sign(centerX(m)) || 1); return sx.get(m); };
+    const ctr = new Map();
+    const onSide = m => (Math.sign(centerOf(m, ctr).x) || 1) === wantSign;
     // Hueso de referencia del lado elegido → define el centro del pivote.
-    const ref = meshes.filter(m => pivotRe.test(m.name) && sideOf(m) === wantSign);
+    const ref = meshes.filter(m => pivotRe.test(m.name) && onSide(m));
     if (!ref.length) return false;
     const box = new THREE.Box3();
     ref.forEach(m => box.expandByObject(m));
@@ -207,8 +221,9 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
     flexPivot = new THREE.Group();
     model.add(flexPivot);
     flexPivot.position.copy(model.worldToLocal(new THREE.Vector3(c.x, pivotY, c.z)));
-    // Segmento distal que se mueve: por patrón de nombre + mismo lado.
-    const moving = meshes.filter(m => movingRe.test(m.name) && sideOf(m) === wantSign);
+    const moving = below
+      ? meshes.filter(m => onSide(m) && (centerOf(m, ctr).y < pivotY || (alsoRe && alsoRe.test(m.name)))) // distal + extras (rótula)
+      : meshes.filter(m => movingRe && movingRe.test(m.name) && onSide(m)); // por nombre
     moving.forEach(m => flexPivot.attach(m));
     return moving.length > 0;
   }
@@ -220,6 +235,11 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   }
   function teardownFlex() {
     if (flexPivot && model) {
+      // Vuelve a neutral ANTES de desenparentar: attach() conserva el transform
+      // del mundo, así que si el pivote sigue rotado, las mallas se quedarían
+      // trabadas en la posición girada al cambiar de articulación.
+      flexPivot.rotation.set(0, 0, 0);
+      flexPivot.updateMatrixWorld(true);
       [...flexPivot.children].forEach(ch => model.attach(ch));
       model.remove(flexPivot);
     }
@@ -313,7 +333,7 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
 
   return {
     loadModel, loadModels, applyResolver, setLayer, isolateRegion, clearIsolation,
-    setHideVessels, setupArticulation, setFlex, teardownFlex,
+    setHideVessels, setHideFascia, setupArticulation, setFlex, teardownFlex,
     reset, fit, frameModel,
     highlightMesh, highlightById, highlightMany, clearHighlight,
     getMeshNames: () => meshes.map(m => m.name),

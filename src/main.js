@@ -49,17 +49,11 @@ function resolveColloquial(query) {
   if (!g && q.length >= 3) g = COLLOQUIAL.find(x => x.keys.some(k => k.startsWith(q))); // prefijo
   return g ? g.ids : null;
 }
-// Búsqueda del sidebar: si el texto es un grupo coloquial, filtra la lista a ese
-// grupo y lo resalta en 3D; si no, filtra la lista por texto normal.
+// Búsqueda del sidebar: SOLO filtra la lista de nombres seleccionables (por grupo
+// coloquial o por texto). NO toca la figura 3D: el cuerpo se queda completo.
 function handleSearch(query) {
   const ids = resolveColloquial(query);
-  if (ids) {
-    applySearchFilter(query, new Set(ids));
-    if (modelLoaded) viewer.highlightMany(ids);
-  } else {
-    applySearchFilter(query);
-    if (modelLoaded && !(query || '').trim()) viewer.clearHighlight();
-  }
+  applySearchFilter(query, ids ? new Set(ids) : undefined);
 }
 
 // ── Estado de UI ─────────────────────────────────────────────────────────────
@@ -144,14 +138,12 @@ function setLayerUI(layer) {
 // (mismo orden que joints.json). axis se deriva del plano de cada movimiento.
 const ARTICULABLE = {
   ankle: {
-    pivot: /tibiar|fibular/i, edge: 'min',
-    moving: /calcaneus|talus|cuboid|navicular|cuneiform|metatars|of_foot/i,
+    pivot: /tibiar|fibular/i, edge: 'min', below: true, // mueve todo el pie (bloque)
     signs: [-1, 1, 1, -1]
   },
   knee: {
-    pivot: /femurr/i, edge: 'min',
-    moving: /tibiar|fibular|patellar|tibialis|gastrocnem|soleus|peroneus|calcaneus|talus|cuboid|navicular|cuneiform|metatars|of_foot/i,
-    signs: [1, 1, 1, -1]
+    pivot: /femurr/i, edge: 'min', below: true, also: /patell/i, // pierna baja + pie + rótula (bloque)
+    signs: [-1, 1, 1, -1]
   },
   hip: {
     pivot: /femurr/i, edge: 'max',
@@ -175,10 +167,10 @@ function onPickJoint(joint) {
   const art = ARTICULABLE[joint.id];
   renderJoint(joint, structById, !!art);
   openInfoPanel();
-  setLayerUI('bone'); // esqueleto para ver los huesos que se mueven
+  setLayerUI(null); // huesos + músculos juntos (se mueven en conjunto)
   if (!modelLoaded) return;
   // Articula sobre UN lado (el visor filtra por signo de X) del cuerpo completo.
-  const ok = art && viewer.setupArticulation({ movingRe: art.moving, pivotRe: art.pivot, edge: art.edge, side: 'R' });
+  const ok = art && viewer.setupArticulation({ movingRe: art.moving, pivotRe: art.pivot, edge: art.edge, side: 'R', below: art.below, alsoRe: art.also });
   if (!ok) { viewer.highlightMany(joint.bones || []); return; }
   const sl = document.getElementById('joint-animate');
   const movEls = document.querySelectorAll('#info .mov-sel');
@@ -200,8 +192,9 @@ function onPickJoint(joint) {
 }
 
 function onMode(mode) {
-  // Movimiento usa el esqueleto; los demás modos, los músculos.
-  setLayerUI(mode === 'movement' ? 'bone' : 'muscle');
+  // Movimiento muestra huesos + músculos JUNTOS (se mueven en conjunto); los
+  // botones Músculos/Huesos sirven para "pelar" la vista y ver el detalle adentro.
+  setLayerUI(mode === 'movement' ? null : 'muscle');
   // al volver a Explorar, re-aplica el aislamiento de región si lo había
   if (mode === 'explore' && activeRegion) viewer.isolateRegion(s => s.region === activeRegion);
 }
@@ -288,6 +281,7 @@ function loadCurrent(urls) {
       linkedIds = new Set(meshNames.map(resolveMesh).filter(Boolean).map(s => s.id));
       viewer.setLayer(currentLayer());
       viewer.setHideVessels(true); // vasos/nervios siempre ocultos
+      viewer.setHideFascia(!document.getElementById('show-fascia')?.checked); // fascia oculta salvo toggle
       if (activeRegion) viewer.isolateRegion(s => s.region === activeRegion);
       modelLoaded = true;
       showProgress(false);
@@ -310,6 +304,9 @@ modelSelect.addEventListener('change', () => {
   if (modelSelect.value === 'models/overview-skeleton.glb') setLayerUI('bone');
   loadCurrent();
 });
+
+// Fascia: oculta por defecto (deja seleccionar músculos); el toggle la muestra.
+document.getElementById('show-fascia').addEventListener('change', e => viewer.setHideFascia(!e.target.checked));
 
 if (params.model) loadCurrent([params.model]);
 else loadCurrent(); // por defecto: cuerpo completo + ambos lados
