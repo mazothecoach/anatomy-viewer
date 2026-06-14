@@ -25,7 +25,8 @@ export const params = Object.freeze({
   minimal: flag('minimal'),
   region: sp.get('region'),
   model: sp.get('model'),
-  bg: sp.get('bg')
+  bg: sp.get('bg'),
+  debug: flag('debug') // ?debug expone window.__viewer (inspección)
 });
 
 export function validLang(v) {

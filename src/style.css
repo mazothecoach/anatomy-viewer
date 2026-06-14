@@ -153,6 +153,23 @@ body.client .coach-only { display: none; }
 .picker-card:hover { border-color: var(--accent); }
 .picker-card.active { border-color: var(--accent); color: var(--accent); background: rgba(198,255,61,0.08); }
 
+/* ── Ejercicios agrupados por músculo (acordeón) ──────────────────────────── */
+.ex-group { display: flex; flex-direction: column; }
+.ex-group-head { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  text-align: left; width: 100%; background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; cursor: pointer;
+  font-size: 13px; font-weight: 600; font-family: inherit; }
+.ex-group-head:hover { border-color: var(--accent); color: var(--accent); }
+.ex-group.open .ex-group-head { border-color: var(--accent-dim); color: var(--accent); }
+.ex-group-head::after { content: '▸'; margin-left: auto; color: var(--accent-dim); transition: transform 0.15s; }
+.ex-group.open .ex-group-head::after { transform: rotate(90deg); }
+.ex-group-name { flex: 1; }
+.ex-count { background: rgba(198,255,61,0.12); color: var(--accent); border-radius: 999px;
+  font-size: 11px; padding: 1px 8px; font-weight: 600; }
+.ex-group-body { display: none; flex-direction: column; gap: 5px; padding: 6px 0 4px 10px; }
+.ex-group.open .ex-group-body { display: flex; }
+.picker-card.sub { font-size: 12.5px; padding: 8px 11px; }
+
 /* ── Highlight summary (pain / physique result) ──────────────────────────── */
 .hs-label { color: var(--accent-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; display: block; margin: 12px 0 6px; }
 .muscle-chips { display: flex; flex-wrap: wrap; gap: 6px; }

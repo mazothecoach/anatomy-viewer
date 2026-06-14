@@ -238,10 +238,12 @@ export function setActiveListItem(id) {
   document.querySelectorAll('#list .item').forEach(el =>
     el.classList.toggle('active', el.dataset.id === id));
 }
-export function applySearchFilter(query) {
+// Filtra la lista por texto, o por un conjunto de ids (búsqueda coloquial por grupo).
+export function applySearchFilter(query, idSet) {
   const q = (query || '').trim().toLowerCase();
   document.querySelectorAll('#list .item').forEach(el => {
-    el.style.display = !q || el.textContent.toLowerCase().includes(q) ? '' : 'none';
+    const show = idSet ? idSet.has(el.dataset.id) : (!q || el.textContent.toLowerCase().includes(q));
+    el.style.display = show ? '' : 'none';
   });
 }
 
@@ -286,6 +288,51 @@ export function renderPickerList(items, emptyKey, onPick) {
   });
 }
 
+// ── Picker de ejercicios AGRUPADO por músculo primario (acordeón) ────────────
+// Mantiene la lista de ejercicios, pero los agrupa bajo el músculo que atacan,
+// para que el cliente abra "Bíceps" y vea sus ejercicios.
+export function renderExercisePicker(exercises, muscleName, onPick) {
+  const picker = $('#picker');
+  if (!exercises || !exercises.length) {
+    picker.innerHTML = `<p class="placeholder">${t('empty_exercises')}</p>`;
+    return;
+  }
+  const groups = new Map();
+  exercises.forEach(ex => {
+    const key = ex.primaryMuscle || '_';
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(ex);
+  });
+  // Ordena los grupos por nombre de músculo (ascendente) para lectura fácil.
+  const sorted = [...groups.entries()].sort((a, b) =>
+    muscleName(a[0]).localeCompare(muscleName(b[0]), undefined, { sensitivity: 'base' }));
+  picker.innerHTML = '';
+  sorted.forEach(([muscleId, exs], idx) => {
+    const group = document.createElement('div');
+    group.className = 'ex-group' + (idx === 0 ? ' open' : '');
+    const head = document.createElement('button');
+    head.className = 'ex-group-head';
+    head.innerHTML = `<span class="ex-group-name">${escapeHtml(muscleName(muscleId))}</span><span class="ex-count">${exs.length}</span>`;
+    head.onclick = () => group.classList.toggle('open');
+    const body = document.createElement('div');
+    body.className = 'ex-group-body';
+    exs.forEach(ex => {
+      const card = document.createElement('button');
+      card.className = 'picker-card sub';
+      card.textContent = tf(ex.name);
+      card.onclick = () => {
+        picker.querySelectorAll('.picker-card').forEach(x => x.classList.remove('active'));
+        card.classList.add('active');
+        onPick(ex);
+      };
+      body.appendChild(card);
+    });
+    group.appendChild(head);
+    group.appendChild(body);
+    picker.appendChild(group);
+  });
+}
+
 // ── Drawer / bottom-sheet móvil ──────────────────────────────────────────────
 export function openInfoPanel() { if (isNarrow()) $('.right').classList.add('open'); }
 export function closeInfoPanel() { $('.right').classList.remove('open'); }
@@ -297,7 +344,8 @@ export function wireControls(opts) {
   const {
     viewer, onLayer, onLang, initialMode,
     onMode, onRegion, painZones, physiqueGoals, morphology, exercises, joints,
-    onPickPain, onPickPhysique, onPickMorphology, onPickExercise, onPickJoint, onListPick
+    onPickPain, onPickPhysique, onPickMorphology, onPickExercise, onPickJoint, onListPick,
+    muscleName
   } = opts;
 
   // idioma
@@ -330,7 +378,7 @@ export function wireControls(opts) {
     const explore = mode === 'explore';
     $('#explore-panel').classList.toggle('hidden', !explore);
     $('#picker').classList.toggle('hidden', explore);
-    if (mode === 'exercise') renderPickerList(exercises, 'empty_exercises', onPickExercise);
+    if (mode === 'exercise') renderExercisePicker(exercises, muscleName || (id => id), onPickExercise);
     if (mode === 'pain') renderPickerList(painZones, 'empty_painzones', onPickPain);
     if (mode === 'physique') renderPickerList(physiqueGoals, 'empty_physique', onPickPhysique);
     if (mode === 'morphology') {
@@ -361,8 +409,8 @@ export function wireControls(opts) {
   $('#btn-reset').onclick = () => viewer.reset();
   $('#btn-fit').onclick = () => viewer.fit();
 
-  // búsqueda (texto sobre la lista ya filtrada por región)
-  $('#search').addEventListener('input', e => applySearchFilter(e.target.value));
+  // búsqueda (coloquial por grupo si hay onSearch; si no, texto sobre la lista)
+  $('#search').addEventListener('input', e => (opts.onSearch || applySearchFilter)(e.target.value));
 
   // drawer / sheet móvil
   $('#toggle-sidebar').onclick = () => {

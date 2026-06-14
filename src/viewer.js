@@ -180,17 +180,25 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
     controls.update();
   }
 
-  // ── Articulación básica (sin rig): flexión de rodilla del tren inferior ──────
+  // ── Articulación sin rig: por REGIÓN + LADO, no por plano Y ──────────────────
+  // El modelo es cuerpo completo con ambos lados (mallas espejo con el MISMO
+  // nombre), así que filtrar "todo lo que está debajo de un Y" agarraría las dos
+  // extremidades (efecto "Picasso"). En su lugar: elegimos las mallas que se
+  // mueven por patrón de nombre Y por lado (signo de X en el mundo), y colocamos
+  // el pivote en el borde del hueso de referencia de ESE lado.
   let flexPivot = null;
-  // Articula reparentando todo lo que está por debajo de un eje (la articulación)
-  // a un pivote, y rotándolo. refNames = mallas del hueso de referencia; edge = 'max'
-  // (parte alta, p.ej. rodilla = tope de la tibia) o 'min' (parte baja, p.ej. tobillo
-  // = base de tibia/peroné). Si refNames es null usa la rodilla (tibia/rótula).
-  function setupArticulation(refNames, edge) {
+  const centerX = m => new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3()).x;
+
+  // opts = { movingRe, pivotRe, edge:'min'|'max', side:'L'|'R' }
+  function setupArticulation(opts = {}) {
     teardownFlex();
-    if (!model || !meshes.length) return false;
-    const set = refNames ? new Set(refNames) : null;
-    const ref = set ? meshes.filter(m => set.has(m.name)) : meshes.filter(m => /tibia|patella/i.test(m.name));
+    const { movingRe, pivotRe, edge = 'max', side = 'R' } = opts;
+    if (!model || !meshes.length || !movingRe || !pivotRe) return false;
+    const wantSign = side === 'L' ? -1 : 1;
+    const sx = new Map();
+    const sideOf = m => { if (!sx.has(m)) sx.set(m, Math.sign(centerX(m)) || 1); return sx.get(m); };
+    // Hueso de referencia del lado elegido → define el centro del pivote.
+    const ref = meshes.filter(m => pivotRe.test(m.name) && sideOf(m) === wantSign);
     if (!ref.length) return false;
     const box = new THREE.Box3();
     ref.forEach(m => box.expandByObject(m));
@@ -199,15 +207,15 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
     flexPivot = new THREE.Group();
     model.add(flexPivot);
     flexPivot.position.copy(model.worldToLocal(new THREE.Vector3(c.x, pivotY, c.z)));
-    const below = meshes.filter(m => new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3()).y < pivotY);
-    below.forEach(m => flexPivot.attach(m));
-    return below.length > 0;
+    // Segmento distal que se mueve: por patrón de nombre + mismo lado.
+    const moving = meshes.filter(m => movingRe.test(m.name) && sideOf(m) === wantSign);
+    moving.forEach(m => flexPivot.attach(m));
+    return moving.length > 0;
   }
-  function setupLowerFlex() { return setupArticulation(null, 'max'); } // rodilla (compat)
   function setFlex(deg, axis) {
-    if (!flexPivot && !setupLowerFlex()) return false;
+    if (!flexPivot) return false;
     flexPivot.rotation.set(0, 0, 0);
-    flexPivot.rotation[axis === 'z' ? 'z' : 'x'] = deg * Math.PI / 180;
+    flexPivot.rotation[axis === 'z' ? 'z' : axis === 'y' ? 'y' : 'x'] = deg * Math.PI / 180;
     return true;
   }
   function teardownFlex() {
@@ -309,6 +317,12 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
     reset, fit, frameModel,
     highlightMesh, highlightById, highlightMany, clearHighlight,
     getMeshNames: () => meshes.map(m => m.name),
-    hasModel: () => !!model
+    hasModel: () => !!model,
+    // Inspector read-only: centros en el mundo de las mallas que matchean `re`.
+    meshWorld: re => meshes.filter(m => re.test(m.name)).map(m => {
+      m.updateWorldMatrix(true, false); // matrices al día (incluye el pivote padre)
+      const c = new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3());
+      return { name: m.name, x: +c.x.toFixed(3), y: +c.y.toFixed(3), z: +c.z.toFixed(3), vis: m.visible };
+    })
   };
 }

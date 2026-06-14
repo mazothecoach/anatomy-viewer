@@ -15,6 +15,7 @@ import physiqueGoals from './data/physiqueGoals.json';
 import morphology from './data/morphology.json';
 import exercises from './data/exercises.json';
 import joints from './data/joints.json';
+import muscleGroups from './data/muscleGroups.json';
 
 // ── Datos ──────────────────────────────────────────────────────────────────
 const structures = [...muscles, ...bones];
@@ -32,6 +33,34 @@ function normalize(s) {
 const meshIndex = new Map();
 structures.forEach(s => (s.meshNames || []).forEach(mn => meshIndex.set(normalize(mn), s)));
 function resolveMesh(meshName) { return meshIndex.get(normalize(meshName)) || null; }
+
+// ── Búsqueda coloquial: "bíceps", "espalda", "gemelo" → grupo de músculos ─────
+const stripAccents = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+const normTerm = s => stripAccents((s || '').toLowerCase()).trim();
+const COLLOQUIAL = muscleGroups.map(g => ({
+  ids: g.muscleIds,
+  keys: [normTerm(g.term), ...(g.aliases || []).map(normTerm)]
+}));
+// Devuelve los ids del mejor grupo que matchea el término coloquial, o null.
+function resolveColloquial(query) {
+  const q = normTerm(query);
+  if (q.length < 2) return null;
+  let g = COLLOQUIAL.find(x => x.keys.includes(q));                       // exacto
+  if (!g && q.length >= 3) g = COLLOQUIAL.find(x => x.keys.some(k => k.startsWith(q))); // prefijo
+  return g ? g.ids : null;
+}
+// Búsqueda del sidebar: si el texto es un grupo coloquial, filtra la lista a ese
+// grupo y lo resalta en 3D; si no, filtra la lista por texto normal.
+function handleSearch(query) {
+  const ids = resolveColloquial(query);
+  if (ids) {
+    applySearchFilter(query, new Set(ids));
+    if (modelLoaded) viewer.highlightMany(ids);
+  } else {
+    applySearchFilter(query);
+    if (modelLoaded && !(query || '').trim()) viewer.clearHighlight();
+  }
+}
 
 // ── Estado de UI ─────────────────────────────────────────────────────────────
 let activeRegion = presentRegions.includes(params.region) ? params.region : null;
@@ -59,6 +88,7 @@ const viewer = createViewer(canvas, {
     openInfoPanel();
   }
 });
+if (params.debug) window.__viewer = viewer; // inspector temporal de verificación
 
 // ── Lista + región ────────────────────────────────────────────────────────────
 function refreshList() {
@@ -107,51 +137,66 @@ function setLayerUI(layer) {
   document.getElementById('layer-bone').classList.toggle('active', layer === 'bone');
   viewer.setLayer(layer);
 }
-// Articulaciones animables (reparenteo sin rig, solo en la pierna sola).
-// Primer test: tobillo → el pie rota sobre la base de tibia/peroné.
-// signs por movimiento (orden de joints.json): dorsiflexión, flexión plantar, inversión, eversión
+// Articulaciones animables sobre el cuerpo completo + ambos lados.
+// moving/pivot = patrones de nombre de malla; el visor filtra además por LADO
+// (signo de X) para mover solo una extremidad. edge = borde Y del hueso de
+// referencia donde se coloca el pivote. signs[i] = sentido de giro por movimiento
+// (mismo orden que joints.json). axis se deriva del plano de cada movimiento.
 const ARTICULABLE = {
-  ankle: { ref: ['tibia', 'fibula'], edge: 'min', signs: [-1, 1, 1, -1] }
+  ankle: {
+    pivot: /tibiar|fibular/i, edge: 'min',
+    moving: /calcaneus|talus|cuboid|navicular|cuneiform|metatars|of_foot/i,
+    signs: [-1, 1, 1, -1]
+  },
+  knee: {
+    pivot: /femurr/i, edge: 'min',
+    moving: /tibiar|fibular|patellar|tibialis|gastrocnem|soleus|peroneus|calcaneus|talus|cuboid|navicular|cuneiform|metatars|of_foot/i,
+    signs: [1, 1, 1, -1]
+  },
+  hip: {
+    pivot: /femurr/i, edge: 'max',
+    moving: /femurr|patellar|tibiar|fibular|tibialis|gastrocnem|soleus|peroneus|calcaneus|talus|cuboid|navicular|cuneiform|metatars|of_foot|vastus|rectus_femoris|biceps_femoris|semitendinosus|semimembranosus|sartorius|gracilis|adductor|tensor_fasc/i,
+    signs: [1, -1, 1, -1, 1, -1]
+  },
+  glenohumeral: {
+    pivot: /humerusr/i, edge: 'max',
+    moving: /humerusr|radiusr|ulnar|deltoid|brachii|brachialis|coracobrachialis|triceps_brachii|brachioradialis|pronator|supinator|carpal|capitate|hamate|lunate|pisiform|scaphoid|triquetrum|trapezium|trapezoid|metacarp/i,
+    signs: [1, -1, 1, -1, 1, -1]
+  },
+  scapulothoracic: {
+    pivot: /scapular(?!is)/i, edge: 'max',
+    moving: /scapular|supraspinatus|infraspinatus|teres_minor|teres_major|subscapularis|serratus|deltoid/i,
+    signs: [1, -1, 1, -1, 1, -1]
+  }
 };
 const planeAxis = p => (p === 'frontal' ? 'z' : (p === 'transverse' ? 'y' : 'x'));
-function loadLowerLimbThen(cb) {
-  if (modelLoaded && modelSelect.value === 'models/lower-limb.glb' && !bothSides.checked) { cb(); return; }
-  modelSelect.value = 'models/lower-limb.glb';
-  bothSides.checked = false;
-  updateFlexVisibility();
-  loadCurrent().then(cb);
-}
+
 function onPickJoint(joint) {
   const art = ARTICULABLE[joint.id];
   renderJoint(joint, structById, !!art);
   openInfoPanel();
-  if (art) {
-    loadLowerLimbThen(() => {
-      setLayerUI('bone');
-      const refNames = art.ref.flatMap(id => (structById.get(id)?.meshNames || []));
-      viewer.setupArticulation(refNames, art.edge);
-      const sl = document.getElementById('joint-animate');
-      const movEls = document.querySelectorAll('#info .mov-sel');
-      let active = { axis: 'x', sign: 1, rom: 20 };
-      function selectMov(i) {
-        const m = joint.movements[i];
-        active = { axis: planeAxis(m.plane), sign: (art.signs && art.signs[i]) || 1, rom: m.romDeg };
-        movEls.forEach((el, j) => el.classList.toggle('active', j === i));
-        if (sl) { sl.max = active.rom; sl.value = 0; }
-        const mn = document.getElementById('anim-min'), mx = document.getElementById('anim-max');
-        if (mn) mn.textContent = '0°';
-        if (mx) mx.textContent = active.rom + '°';
-        viewer.setFlex(0, active.axis); // vuelve a neutral al cambiar de movimiento
-      }
-      movEls.forEach((el, i) => { el.onclick = () => selectMov(i); });
-      // slider: 0 (izquierda) → límite del rango del movimiento elegido (derecha)
-      if (sl) sl.oninput = e => viewer.setFlex(Number(e.target.value) * active.sign, active.axis);
-      if (movEls.length) selectMov(0); // por defecto, dorsiflexión
-    });
-    return;
-  }
   setLayerUI('bone'); // esqueleto para ver los huesos que se mueven
-  if (modelLoaded) viewer.highlightMany(joint.bones || []);
+  if (!modelLoaded) return;
+  // Articula sobre UN lado (el visor filtra por signo de X) del cuerpo completo.
+  const ok = art && viewer.setupArticulation({ movingRe: art.moving, pivotRe: art.pivot, edge: art.edge, side: 'R' });
+  if (!ok) { viewer.highlightMany(joint.bones || []); return; }
+  const sl = document.getElementById('joint-animate');
+  const movEls = document.querySelectorAll('#info .mov-sel');
+  let active = { axis: 'x', sign: 1, rom: 20 };
+  function selectMov(i) {
+    const m = joint.movements[i];
+    active = { axis: planeAxis(m.plane), sign: (art.signs && art.signs[i]) || 1, rom: m.romDeg || 1 };
+    movEls.forEach((el, j) => el.classList.toggle('active', j === i));
+    if (sl) { sl.max = active.rom; sl.value = 0; }
+    const mn = document.getElementById('anim-min'), mx = document.getElementById('anim-max');
+    if (mn) mn.textContent = '0°';
+    if (mx) mx.textContent = active.rom + '°';
+    viewer.setFlex(0, active.axis); // vuelve a neutral al cambiar de movimiento
+  }
+  movEls.forEach((el, i) => { el.onclick = () => selectMov(i); });
+  // slider: 0 (izquierda) → límite del rango del movimiento (derecha)
+  if (sl) sl.oninput = e => viewer.setFlex(Number(e.target.value) * active.sign, active.axis);
+  if (movEls.length) selectMov(0);
 }
 
 function onMode(mode) {
@@ -194,7 +239,9 @@ const ui = wireControls({
   onPickMorphology,
   onPickExercise,
   onPickJoint,
-  onListPick
+  onListPick,
+  muscleName: id => { const s = structById.get(id); return s ? tf(s.name) : id; },
+  onSearch: handleSearch
 });
 
 buildRegionTabs(presentRegions, activeRegion, onRegion);
@@ -204,9 +251,11 @@ refreshList();
 mqNarrow.addEventListener('change', () => viewer.fit());
 
 // ── Carga del modelo ──────────────────────────────────────────────────────────
+// Vista principal: SIEMPRE cuerpo completo + ambos lados (espejo), vasos ocultos.
 const FULL_BODY = ['models/sample.glb', 'models/lower-limb.glb']; // superior + inferior
 const modelSelect = document.getElementById('model-select');
-const bothSides = document.getElementById('both-sides');
+// Los modelos de músculo vienen de un lado y se reflejan; el esqueleto ya es bilateral.
+const shouldMirror = url => !/overview-skeleton/.test(url);
 
 function setStatusForModel() {
   if (modelLoaded) {
@@ -231,12 +280,14 @@ function loadCurrent(urls) {
   setStatus('status_loading');
   showProgress(true, 0);
   modelLoaded = false;
-  const kf = document.getElementById('knee-flex'); if (kf) kf.value = '0';
-  return viewer.loadModels(urls || selectedUrls(), { mirror: bothSides.checked, onProgress: p => showProgress(true, p) })
+  const list = urls || selectedUrls();
+  const mirror = list.some(shouldMirror); // ambos lados siempre (salvo esqueleto)
+  return viewer.loadModels(list, { mirror, onProgress: p => showProgress(true, p) })
     .then(meshNames => {
       viewer.applyResolver(resolveMesh);
       linkedIds = new Set(meshNames.map(resolveMesh).filter(Boolean).map(s => s.id));
       viewer.setLayer(currentLayer());
+      viewer.setHideVessels(true); // vasos/nervios siempre ocultos
       if (activeRegion) viewer.isolateRegion(s => s.region === activeRegion);
       modelLoaded = true;
       showProgress(false);
@@ -253,22 +304,12 @@ function loadCurrent(urls) {
     });
 }
 
-// La flexión de rodilla sin rig solo se ve bien en una pierna sola:
-// se oculta en cuerpo completo / ambos lados (donde se desbarata).
-function updateFlexVisibility() {
-  const ok = modelSelect.value === 'models/lower-limb.glb' && !bothSides.checked;
-  document.getElementById('flex-control').style.display = ok ? '' : 'none';
-}
-modelSelect.addEventListener('change', () => { updateFlexVisibility(); loadCurrent(); });
-bothSides.addEventListener('change', () => { updateFlexVisibility(); loadCurrent(); });
+// El esqueleto es solo huesos: hay que verlo en capa 'bone' (en 'muscle' se
+// ocultan todos los huesos enlazados y "solo se ven unos huesos").
+modelSelect.addEventListener('change', () => {
+  if (modelSelect.value === 'models/overview-skeleton.glb') setLayerUI('bone');
+  loadCurrent();
+});
 
-// Ocultar vasos/nervios
-document.getElementById('hide-vessels').addEventListener('change', e => viewer.setHideVessels(e.target.checked));
-
-// Flexión de rodilla (articulación básica del tren inferior, una pierna)
-const kneeFlex = document.getElementById('knee-flex');
-kneeFlex.addEventListener('input', e => viewer.setFlex(Number(e.target.value)));
-
-updateFlexVisibility();
 if (params.model) loadCurrent([params.model]);
-else loadCurrent();
+else loadCurrent(); // por defecto: cuerpo completo + ambos lados
