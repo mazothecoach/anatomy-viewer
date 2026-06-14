@@ -204,7 +204,8 @@ export function renderJoint(joint, structById, animate) {
         <input type="range" id="joint-animate" min="0" max="20" step="1" value="0" />
         <span class="slider-end" id="anim-max">20°</span></div>
         <span class="animate-hint">${t('animate_hint')}</span>
-      </div>` : ''}
+      </div>
+      <div id="coupling-ctrl" class="coupling-ctrl"></div>` : ''}
     ${joint.coupledMotion ? `<div class="highlight-summary"><strong>${t('coupled_motion')}:</strong> ${escapeHtml(tf(joint.coupledMotion))}</div>` : ''}
     ${joint.notes ? `<div class="psl-note coach-only">${escapeHtml(tf(joint.notes))}</div>` : ''}
   </div>`;
@@ -288,35 +289,36 @@ export function renderPickerList(items, emptyKey, onPick) {
   });
 }
 
-// ── Picker de ejercicios AGRUPADO por músculo primario (acordeón) ────────────
-// Mantiene la lista de ejercicios, pero los agrupa bajo el músculo que atacan,
-// para que el cliente abra "Bíceps" y vea sus ejercicios.
-export function renderExercisePicker(exercises, muscleName, onPick) {
+// ── Picker de ejercicios AGRUPADO por GRUPO COLOQUIAL (acordeón) ─────────────
+// El cliente abre "Femoral", "Glúteos", "Pecho"… y ve sus ejercicios. Adentro,
+// la ficha del ejercicio muestra el músculo con su nombre científico.
+export function renderExercisePicker(exercises, exGroups, onPick) {
   const picker = $('#picker');
   if (!exercises || !exercises.length) {
     picker.innerHTML = `<p class="placeholder">${t('empty_exercises')}</p>`;
     return;
   }
-  const groups = new Map();
+  // Índice músculo → índice de grupo coloquial (orden anatómico del archivo).
+  const groupOf = new Map();
+  (exGroups || []).forEach((g, i) => (g.muscleIds || []).forEach(id => groupOf.set(id, i)));
+  const buckets = (exGroups || []).map(g => ({ label: tf(g.label), exs: [] }));
+  const other = { label: tf({ es: 'Otros', en: 'Other' }), exs: [] };
   exercises.forEach(ex => {
-    const key = ex.primaryMuscle || '_';
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(ex);
+    const gi = groupOf.get(ex.primaryMuscle);
+    (gi != null ? buckets[gi] : other).exs.push(ex);
   });
-  // Ordena los grupos por nombre de músculo (ascendente) para lectura fácil.
-  const sorted = [...groups.entries()].sort((a, b) =>
-    muscleName(a[0]).localeCompare(muscleName(b[0]), undefined, { sensitivity: 'base' }));
+  const ordered = [...buckets, other].filter(b => b.exs.length);
   picker.innerHTML = '';
-  sorted.forEach(([muscleId, exs], idx) => {
+  ordered.forEach((bucket, idx) => {
     const group = document.createElement('div');
     group.className = 'ex-group' + (idx === 0 ? ' open' : '');
     const head = document.createElement('button');
     head.className = 'ex-group-head';
-    head.innerHTML = `<span class="ex-group-name">${escapeHtml(muscleName(muscleId))}</span><span class="ex-count">${exs.length}</span>`;
+    head.innerHTML = `<span class="ex-group-name">${escapeHtml(bucket.label)}</span><span class="ex-count">${bucket.exs.length}</span>`;
     head.onclick = () => group.classList.toggle('open');
     const body = document.createElement('div');
     body.className = 'ex-group-body';
-    exs.forEach(ex => {
+    bucket.exs.forEach(ex => {
       const card = document.createElement('button');
       card.className = 'picker-card sub';
       card.textContent = tf(ex.name);
@@ -345,7 +347,7 @@ export function wireControls(opts) {
     viewer, onLayer, onLang, initialMode,
     onMode, onRegion, painZones, physiqueGoals, morphology, exercises, joints,
     onPickPain, onPickPhysique, onPickMorphology, onPickExercise, onPickJoint, onListPick,
-    muscleName
+    exGroups
   } = opts;
 
   // idioma
@@ -378,7 +380,7 @@ export function wireControls(opts) {
     const explore = mode === 'explore';
     $('#explore-panel').classList.toggle('hidden', !explore);
     $('#picker').classList.toggle('hidden', explore);
-    if (mode === 'exercise') renderExercisePicker(exercises, muscleName || (id => id), onPickExercise);
+    if (mode === 'exercise') renderExercisePicker(exercises, exGroups, onPickExercise);
     if (mode === 'pain') renderPickerList(painZones, 'empty_painzones', onPickPain);
     if (mode === 'physique') renderPickerList(physiqueGoals, 'empty_physique', onPickPhysique);
     if (mode === 'morphology') {

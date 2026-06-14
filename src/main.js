@@ -16,6 +16,7 @@ import morphology from './data/morphology.json';
 import exercises from './data/exercises.json';
 import joints from './data/joints.json';
 import muscleGroups from './data/muscleGroups.json';
+import exerciseGroups from './data/exerciseGroups.json';
 
 // ── Datos ──────────────────────────────────────────────────────────────────
 const structures = [...muscles, ...bones];
@@ -143,17 +144,17 @@ const ARTICULABLE = {
   },
   knee: {
     pivot: /femurr/i, edge: 'min', below: true, also: /patell/i, // pierna baja + pie + rótula (bloque)
-    signs: [-1, 1, 1, -1]
+    signs: [1, 1, 1, -1] // flexión: talón hacia atrás/arriba (verificado)
   },
   hip: {
-    pivot: /femurr/i, edge: 'max',
-    moving: /femurr|patellar|tibiar|fibular|tibialis|gastrocnem|soleus|peroneus|calcaneus|talus|cuboid|navicular|cuneiform|metatars|of_foot|vastus|rectus_femoris|biceps_femoris|semitendinosus|semimembranosus|sartorius|gracilis|adductor|tensor_fasc/i,
-    signs: [1, -1, 1, -1, 1, -1]
+    pivot: /femurr/i, edge: 'max', below: true, // toda la pierna (hueso+músculo+bandas) como bloque
+    exclude: /hip_bone|sacrum|coccyx|pubic_sympys|^Ilium|Ischium|Pubis/i, // pelvis y axial se quedan fijos
+    signs: [-1, 1, 1, -1, 1, -1] // flexión: pierna adelante (verificado)
   },
   glenohumeral: {
     pivot: /humerusr/i, edge: 'max',
     moving: /humerusr|radiusr|ulnar|deltoid|brachii|brachialis|coracobrachialis|triceps_brachii|brachioradialis|pronator|supinator|carpal|capitate|hamate|lunate|pisiform|scaphoid|triquetrum|trapezium|trapezoid|metacarp/i,
-    signs: [1, -1, 1, -1, 1, -1]
+    signs: [-1, 1, 1, -1, 1, -1] // flexión: brazo adelante (verificado)
   },
   scapulothoracic: {
     pivot: /scapular(?!is)/i, edge: 'max',
@@ -170,20 +171,50 @@ function onPickJoint(joint) {
   setLayerUI(null); // huesos + músculos juntos (se mueven en conjunto)
   if (!modelLoaded) return;
   // Articula sobre UN lado (el visor filtra por signo de X) del cuerpo completo.
-  const ok = art && viewer.setupArticulation({ movingRe: art.moving, pivotRe: art.pivot, edge: art.edge, side: 'R', below: art.below, alsoRe: art.also });
+  const ok = art && viewer.setupArticulation({ movingRe: art.moving, pivotRe: art.pivot, edge: art.edge, side: 'R', below: art.below, alsoRe: art.also, excludeRe: art.exclude });
   if (!ok) { viewer.highlightMany(joint.bones || []); return; }
   const sl = document.getElementById('joint-animate');
   const movEls = document.querySelectorAll('#info .mov-sel');
   let active = { axis: 'x', sign: 1, rom: 20 };
+  // Fija el tope del rango (cambia con el acoplamiento) y vuelve a neutral.
+  function applyRom(rom) {
+    active.rom = rom;
+    if (sl) { sl.max = rom; sl.value = 0; }
+    const mn = document.getElementById('anim-min'), mx = document.getElementById('anim-max');
+    if (mn) mn.textContent = '0°';
+    if (mx) mx.textContent = rom + '°';
+    viewer.setFlex(0, active.axis);
+  }
   function selectMov(i) {
     const m = joint.movements[i];
     active = { axis: planeAxis(m.plane), sign: (art.signs && art.signs[i]) || 1, rom: m.romDeg || 1 };
     movEls.forEach((el, j) => el.classList.toggle('active', j === i));
-    if (sl) { sl.max = active.rom; sl.value = 0; }
-    const mn = document.getElementById('anim-min'), mx = document.getElementById('anim-max');
-    if (mn) mn.textContent = '0°';
-    if (mx) mx.textContent = active.rom + '°';
-    viewer.setFlex(0, active.axis); // vuelve a neutral al cambiar de movimiento
+    applyRom(m.romDeg || 1);
+    // Acoplamiento: si el rango depende de otra articulación, muestra opciones.
+    const cc = document.getElementById('coupling-ctrl');
+    if (!cc) return;
+    cc.innerHTML = '';
+    if (!m.coupling) return;
+    const lbl = document.createElement('span');
+    lbl.className = 'coupling-label';
+    lbl.textContent = tf(m.coupling.label) + ':';
+    cc.appendChild(lbl);
+    m.coupling.options.forEach((o, oi) => {
+      const b = document.createElement('button');
+      b.className = 'coupling-opt' + (oi === 0 ? ' active' : '');
+      b.textContent = `${tf(o.name)} (${o.romDeg}°)`;
+      b.onclick = () => {
+        cc.querySelectorAll('.coupling-opt').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        applyRom(o.romDeg);
+      };
+      cc.appendChild(b);
+    });
+    const note = document.createElement('div');
+    note.className = 'coupling-note';
+    note.textContent = tf(m.coupling.note);
+    cc.appendChild(note);
+    applyRom(m.coupling.options[0].romDeg); // por defecto la 1ª opción
   }
   movEls.forEach((el, i) => { el.onclick = () => selectMov(i); });
   // slider: 0 (izquierda) → límite del rango del movimiento (derecha)
@@ -233,7 +264,7 @@ const ui = wireControls({
   onPickExercise,
   onPickJoint,
   onListPick,
-  muscleName: id => { const s = structById.get(id); return s ? tf(s.name) : id; },
+  exGroups: exerciseGroups,
   onSearch: handleSearch
 });
 

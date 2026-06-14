@@ -393,7 +393,15 @@
         "fixedBone": "hip_bone",
         "movingBones": [
           "femur"
-        ]
+        ],
+        "coupling": {
+          "label": { "es": "Rodilla", "en": "Knee" },
+          "options": [
+            { "name": { "es": "flexionada", "en": "flexed" }, "romDeg": 120 },
+            { "name": { "es": "estirada", "en": "extended" }, "romDeg": 90 }
+          ],
+          "note": { "es": "Con la rodilla estirada los isquios (biarticulares) se tensan y la flexión de cadera se frena a ~90° — es el tope del straight-leg raise. Doblar la rodilla los relaja y la cadera llega a ~120°. (AAOS / Kapandji)", "en": "With the knee straight the biarticular hamstrings tighten and hip flexion stops at ~90° — the straight-leg-raise endpoint. Bending the knee slackens them and the hip reaches ~120°. (AAOS / Kapandji)" }
+        }
       },
       {
         "name": {
@@ -405,7 +413,15 @@
         "fixedBone": "hip_bone",
         "movingBones": [
           "femur"
-        ]
+        ],
+        "coupling": {
+          "label": { "es": "Rodilla", "en": "Knee" },
+          "options": [
+            { "name": { "es": "estirada", "en": "extended" }, "romDeg": 20 },
+            { "name": { "es": "flexionada", "en": "flexed" }, "romDeg": 5 }
+          ],
+          "note": { "es": "Doblar la rodilla alarga el recto femoral (biarticular) sobre la rodilla; al extender la cadera se tensa y la frena hacia ~0° (base del test de Thomas). Con la rodilla estirada la cadera extiende ~20°.", "en": "Bending the knee lengthens the biarticular rectus femoris over the knee; extending the hip then tightens it toward ~0° (the Thomas-test basis). With the knee straight the hip extends ~20°." }
+        }
       },
       {
         "name": {
@@ -494,7 +510,15 @@
           "tibia",
           "fibula",
           "patella"
-        ]
+        ],
+        "coupling": {
+          "label": { "es": "Cadera", "en": "Hip" },
+          "options": [
+            { "name": { "es": "flexionada", "en": "flexed" }, "romDeg": 140 },
+            { "name": { "es": "extendida", "en": "extended" }, "romDeg": 120 }
+          ],
+          "note": { "es": "Con la cadera flexionada el recto femoral está relajado y la rodilla flexiona completo (~140°, talón al glúteo). Con la cadera extendida (boca abajo) el recto femoral ya está alargado y frena la flexión hacia ~120° — es el test de Ely.", "en": "With the hip flexed the rectus femoris is slack and the knee flexes fully (~140°, heel to glute). With the hip extended (prone) the rectus femoris is already lengthened and limits flexion to ~120° — the Ely test." }
+        }
       },
       {
         "name": {
@@ -570,7 +594,15 @@
         "fixedBone": "tibia",
         "movingBones": [
           "tarsals"
-        ]
+        ],
+        "coupling": {
+          "label": { "es": "Rodilla", "en": "Knee" },
+          "options": [
+            { "name": { "es": "flexionada", "en": "flexed" }, "romDeg": 20 },
+            { "name": { "es": "estirada", "en": "extended" }, "romDeg": 5 }
+          ],
+          "note": { "es": "Con la rodilla estirada el gastrocnemio (biarticular) está tenso y limita la dorsiflexión a ~5°; doblar la rodilla lo relaja y sube a ~20° (queda el sóleo). Es el principio del test de Silfverskiöld.", "en": "With the knee straight the biarticular gastrocnemius is taut and limits dorsiflexion to ~5°; bending the knee slackens it and it rises to ~20° (soleus-limited). This is the Silfverskiöld-test principle." }
+        }
       },
       {
         "name": {

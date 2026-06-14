@@ -206,11 +206,13 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   // si no, mueve solo las mallas que matchean movingRe (para hombro/escápula).
   function setupArticulation(opts = {}) {
     teardownFlex();
-    const { movingRe, pivotRe, edge = 'max', side = 'R', below = false, alsoRe } = opts;
+    const { movingRe, pivotRe, edge = 'max', side = 'R', below = false, alsoRe, excludeRe } = opts;
     if (!model || !meshes.length || !pivotRe) return false;
     const wantSign = side === 'L' ? -1 : 1;
     const ctr = new Map();
-    const onSide = m => (Math.sign(centerOf(m, ctr).x) || 1) === wantSign;
+    const EPS = 0.02; // umbral de línea media: estructuras axiales (sacro, columna) NO se articulan
+    const onSide = m => { const x = centerOf(m, ctr).x; return Math.abs(x) > EPS && Math.sign(x) === wantSign; };
+    const excl = m => excludeRe && excludeRe.test(m.name); // p.ej. pelvis fija al mover la cadera
     // Hueso de referencia del lado elegido → define el centro del pivote.
     const ref = meshes.filter(m => pivotRe.test(m.name) && onSide(m));
     if (!ref.length) return false;
@@ -222,8 +224,8 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
     model.add(flexPivot);
     flexPivot.position.copy(model.worldToLocal(new THREE.Vector3(c.x, pivotY, c.z)));
     const moving = below
-      ? meshes.filter(m => onSide(m) && (centerOf(m, ctr).y < pivotY || (alsoRe && alsoRe.test(m.name)))) // distal + extras (rótula)
-      : meshes.filter(m => movingRe && movingRe.test(m.name) && onSide(m)); // por nombre
+      ? meshes.filter(m => onSide(m) && !excl(m) && (centerOf(m, ctr).y < pivotY || (alsoRe && alsoRe.test(m.name)))) // todo el bloque distal del lado
+      : meshes.filter(m => movingRe && movingRe.test(m.name) && onSide(m) && !excl(m)); // por nombre
     moving.forEach(m => flexPivot.attach(m));
     return moving.length > 0;
   }

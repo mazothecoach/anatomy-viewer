@@ -1,0 +1,17 @@
+[
+  { "label": { "es": "Pecho", "en": "Chest" }, "muscleIds": ["pectoralis_major", "pectoralis_minor"] },
+  { "label": { "es": "Espalda", "en": "Back" }, "muscleIds": ["latissimus_dorsi", "teres_major", "rhomboids", "serratus_anterior", "erector_spinae", "multifidus", "quadratus_lumborum"] },
+  { "label": { "es": "Trapecios", "en": "Traps" }, "muscleIds": ["trapezius", "levator_scapulae"] },
+  { "label": { "es": "Hombro", "en": "Shoulders" }, "muscleIds": ["deltoid", "supraspinatus", "infraspinatus", "teres_minor", "subscapularis"] },
+  { "label": { "es": "Bíceps", "en": "Biceps" }, "muscleIds": ["biceps_brachii", "brachialis", "coracobrachialis"] },
+  { "label": { "es": "Tríceps", "en": "Triceps" }, "muscleIds": ["triceps_brachii"] },
+  { "label": { "es": "Antebrazo", "en": "Forearm" }, "muscleIds": ["brachioradialis", "wrist_finger_flexors", "wrist_finger_extensors", "pronator_teres", "supinator"] },
+  { "label": { "es": "Abdomen", "en": "Abs" }, "muscleIds": ["rectus_abdominis", "external_oblique", "internal_oblique", "transversus_abdominis", "diaphragm"] },
+  { "label": { "es": "Glúteos", "en": "Glutes" }, "muscleIds": ["gluteus_maximus", "gluteus_medius", "gluteus_minimus"] },
+  { "label": { "es": "Cadera", "en": "Hip" }, "muscleIds": ["iliopsoas", "sartorius", "tensor_fasciae_latae", "piriformis", "deep_external_rotators"] },
+  { "label": { "es": "Cuádriceps", "en": "Quads" }, "muscleIds": ["rectus_femoris", "vastus_lateralis", "vastus_medialis", "vastus_intermedius"] },
+  { "label": { "es": "Femoral", "en": "Hamstrings" }, "muscleIds": ["biceps_femoris", "semitendinosus", "semimembranosus"] },
+  { "label": { "es": "Aductores", "en": "Adductors" }, "muscleIds": ["adductor_magnus", "adductor_longus", "adductor_brevis", "gracilis", "pectineus"] },
+  { "label": { "es": "Pantorrilla", "en": "Calves" }, "muscleIds": ["gastrocnemius", "soleus"] },
+  { "label": { "es": "Tobillo/Espinilla", "en": "Ankle/Shin" }, "muscleIds": ["tibialis_anterior", "tibialis_posterior", "peroneus_longus", "peroneus_brevis"] }
+]

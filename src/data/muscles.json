@@ -1696,7 +1696,7 @@
   },
   {
     "id": "erector_spinae",
-    "meshNames": [],
+    "meshNames": ["Iliocostalis_lumborum_muscler", "Iliocostalis_thoracis_muscler", "Longissimus_thoracis_muscler", "Spinalis_thoracis_muscler"],
     "layer": "muscle",
     "region": "core",
     "name": {
@@ -1760,7 +1760,7 @@
   },
   {
     "id": "multifidus",
-    "meshNames": [],
+    "meshNames": ["Multifidus_lumborumr", "Multifidus_thoracisr"],
     "layer": "muscle",
     "region": "core",
     "name": {
