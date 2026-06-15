@@ -145,7 +145,9 @@ const ARM_RE = /humerusr|radiusr|ulnar|deltoid|biceps_brachii|triceps_brachii|br
 // (mismo orden que joints.json). axis se deriva del plano de cada movimiento.
 const ARTICULABLE = {
   ankle: {
-    pivot: /tibiar|fibular/i, edge: 'min', below: true, // mueve todo el pie (bloque)
+    // Pivote en el TOPE del astrágalo (= articulación del tobillo). Con tibia/peroné
+    // 'min' los maléolos bajan tanto que el corte dejaba medio pie fuera.
+    pivot: /talusr/i, edge: 'max', below: true, // mueve TODO el pie como bloque
     signs: [-1, 1, 1, -1]
   },
   knee: {

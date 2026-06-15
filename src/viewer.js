@@ -250,15 +250,17 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
     flexPivot = new THREE.Group();
     model.add(flexPivot);
     flexPivot.position.copy(model.worldToLocal(new THREE.Vector3(c.x, pivotY, c.z)));
-    // Solo movemos lo que se mueve LIMPIO: nada de tejido conectivo (vuela en pedazos).
-    const clean = m => onSide(m) && !excl(m) && !CONNECTIVE_RE.test(m.name);
+    const onClean = m => onSide(m) && !excl(m);
     let moving;
     if (below) {
-      // Todo el bloque distal del lado (por debajo del pivote en Y) + extras.
-      moving = meshes.filter(m => clean(m) && (centerOf(m, ctr).y < pivotY || also(m)));
+      // BLOQUE: todo lo distal del lado se mueve junto (huesos + cartílagos +
+      // músculos). NO se excluye conectivo: si no, los cartílagos del pie se
+      // quedan y se ve roto. Es un bloque rígido, no se desarma.
+      moving = meshes.filter(m => onClean(m) && (centerOf(m, ctr).y < pivotY || also(m)));
     } else {
-      // Por nombre: solo los huesos/músculos curados del segmento (nada vuela).
-      moving = meshes.filter(m => clean(m) && (movingRe && movingRe.test(m.name) || also(m)));
+      // POR NOMBRE (hombro/escápula): solo huesos/músculos curados, SIN conectivo
+      // (los tendones se anclan al tronco y se estirarían en lámina).
+      moving = meshes.filter(m => onClean(m) && !CONNECTIVE_RE.test(m.name) && ((movingRe && movingRe.test(m.name)) || also(m)));
     }
     moving.forEach(m => flexPivot.attach(m));
     return moving.length > 0;
