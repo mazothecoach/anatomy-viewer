@@ -298,6 +298,7 @@ export function renderExercisePicker(exercises, exGroups, onPick) {
     picker.innerHTML = `<p class="placeholder">${t('empty_exercises')}</p>`;
     return;
   }
+  const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   // Índice músculo → índice de grupo coloquial (orden anatómico del archivo).
   const groupOf = new Map();
   (exGroups || []).forEach((g, i) => (g.muscleIds || []).forEach(id => groupOf.set(id, i)));
@@ -308,7 +309,18 @@ export function renderExercisePicker(exercises, exGroups, onPick) {
     (gi != null ? buckets[gi] : other).exs.push(ex);
   });
   const ordered = [...buckets, other].filter(b => b.exs.length);
+
   picker.innerHTML = '';
+  // Lupa: buscar ejercicio por nombre (o por grupo coloquial: "femoral", "glúteos"…).
+  const search = document.createElement('input');
+  search.type = 'search'; search.className = 'ex-search'; search.autocomplete = 'off';
+  search.setAttribute('placeholder', t('exercise_search_ph'));
+  picker.appendChild(search);
+  const groupsEl = document.createElement('div');
+  groupsEl.className = 'ex-groups';
+  picker.appendChild(groupsEl);
+
+  const nodes = [];
   ordered.forEach((bucket, idx) => {
     const group = document.createElement('div');
     group.className = 'ex-group' + (idx === 0 ? ' open' : '');
@@ -318,20 +330,36 @@ export function renderExercisePicker(exercises, exGroups, onPick) {
     head.onclick = () => group.classList.toggle('open');
     const body = document.createElement('div');
     body.className = 'ex-group-body';
+    const cards = [];
     bucket.exs.forEach(ex => {
       const card = document.createElement('button');
       card.className = 'picker-card sub';
       card.textContent = tf(ex.name);
+      card._q = norm(`${tf(ex.name)} ${bucket.label}`);
       card.onclick = () => {
         picker.querySelectorAll('.picker-card').forEach(x => x.classList.remove('active'));
         card.classList.add('active');
         onPick(ex);
       };
       body.appendChild(card);
+      cards.push(card);
     });
     group.appendChild(head);
     group.appendChild(body);
-    picker.appendChild(group);
+    groupsEl.appendChild(group);
+    nodes.push({ group, cards, label: norm(bucket.label), first: idx === 0 });
+  });
+
+  search.addEventListener('input', () => {
+    const q = norm(search.value.trim());
+    nodes.forEach(({ group, cards, label, first }) => {
+      if (!q) { group.style.display = ''; cards.forEach(c => c.style.display = ''); group.classList.toggle('open', first); return; }
+      const labelMatch = label.includes(q);
+      let any = false;
+      cards.forEach(c => { const show = labelMatch || c._q.includes(q); c.style.display = show ? '' : 'none'; if (show) any = true; });
+      group.style.display = any ? '' : 'none';
+      group.classList.toggle('open', any); // expande los grupos con resultados
+    });
   });
 }
 

@@ -24,7 +24,15 @@
         "fixedBone": "scapula",
         "movingBones": [
           "humerus"
-        ]
+        ],
+        "coupling": {
+          "label": { "es": "Codo", "en": "Elbow" },
+          "options": [
+            { "name": { "es": "estirado", "en": "extended" }, "romDeg": 180 },
+            { "name": { "es": "flexionado", "en": "flexed" }, "romDeg": 160 }
+          ],
+          "note": { "es": "Con el codo flexionado, la cabeza larga del tríceps (biarticular) ya está alargada y frena un poco la flexión completa del hombro por insuficiencia pasiva; con el codo estirado el brazo llega más arriba (~180°).", "en": "With the elbow flexed, the biarticular long head of triceps is already lengthened and slightly limits full shoulder flexion (passive insufficiency); with the elbow straight the arm reaches higher (~180°)." }
+        }
       },
       {
         "name": {
@@ -36,7 +44,15 @@
         "fixedBone": "scapula",
         "movingBones": [
           "humerus"
-        ]
+        ],
+        "coupling": {
+          "label": { "es": "Codo", "en": "Elbow" },
+          "options": [
+            { "name": { "es": "flexionado", "en": "flexed" }, "romDeg": 60 },
+            { "name": { "es": "estirado", "en": "extended" }, "romDeg": 40 }
+          ],
+          "note": { "es": "Con el codo estirado, el bíceps (biarticular) se tensa por delante del hombro y frena la extensión; doblar el codo lo relaja y el brazo va más atrás. Base de por qué el curl inclinado estira más el bíceps.", "en": "With the elbow straight, the biarticular biceps tightens at the front of the shoulder and limits extension; bending the elbow slackens it and the arm goes farther back. This is why an incline curl stretches the biceps more." }
+        }
       },
       {
         "name": {
@@ -445,7 +461,15 @@
         "fixedBone": "hip_bone",
         "movingBones": [
           "femur"
-        ]
+        ],
+        "coupling": {
+          "label": { "es": "Rodilla", "en": "Knee" },
+          "options": [
+            { "name": { "es": "estirada", "en": "extended" }, "romDeg": 30 },
+            { "name": { "es": "flexionada", "en": "flexed" }, "romDeg": 20 }
+          ],
+          "note": { "es": "Con la rodilla flexionada aumenta la tensión del TFL / banda iliotibial sobre la cara lateral de la rodilla y se aduce menos (test de Ober clásico); con la rodilla estirada la cadera aduce más (Ober modificado).", "en": "With the knee flexed, TFL / iliotibial-band tension over the lateral knee rises and adduction decreases (classic Ober test); with the knee straight the hip adducts more (modified Ober)." }
+        }
       },
       {
         "name": {
@@ -457,7 +481,15 @@
         "fixedBone": "hip_bone",
         "movingBones": [
           "femur"
-        ]
+        ],
+        "coupling": {
+          "label": { "es": "Cadera", "en": "Hip" },
+          "options": [
+            { "name": { "es": "flexionada", "en": "flexed" }, "romDeg": 40 },
+            { "name": { "es": "extendida", "en": "extended" }, "romDeg": 30 }
+          ],
+          "note": { "es": "Con la cadera flexionada ~90° el piriforme cambia de palanca y pasa a rotar internamente, así que hay más rotación interna sentado que de pie. Por eso se valora la RI con la cadera a 90°.", "en": "With the hip flexed ~90° the piriformis switches leverage and becomes an internal rotator, so internal rotation is greater seated than standing. That's why IR is assessed with the hip at 90°." }
+        }
       },
       {
         "name": {
@@ -469,7 +501,15 @@
         "fixedBone": "hip_bone",
         "movingBones": [
           "femur"
-        ]
+        ],
+        "coupling": {
+          "label": { "es": "Cadera", "en": "Hip" },
+          "options": [
+            { "name": { "es": "extendida", "en": "extended" }, "romDeg": 45 },
+            { "name": { "es": "flexionada", "en": "flexed" }, "romDeg": 35 }
+          ],
+          "note": { "es": "Al flexionar la cadera, los rotadores externos profundos (piriforme y compañía) pierden brazo de palanca rotador externo, así que la rotación externa disponible baja un poco respecto a la cadera extendida.", "en": "As the hip flexes, the deep external rotators (piriformis et al.) lose external-rotation leverage, so available external rotation drops slightly compared with the extended hip." }
+        }
       }
     ],
     "coupledMotion": {
