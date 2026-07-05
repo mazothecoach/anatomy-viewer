@@ -136,7 +136,10 @@ function setLayerUI(layer) {
 const LOWER_BODY_RE = /femur|tibia|fibula|patella|gluteus|adductor|gracilis|sartorius|tensor_fasc|vastus|rectus_femoris|biceps_femoris|semitendinosus|semimembranosus|iliopsoas|piriformis|deep_external|hip_bone|sacrum|coccyx|pubis|ischium|ilium|psoas|rectus_abdom|abdominal_oblique|transverse_abdom|quadratus|erector|multifidus|longissimus|iliocostalis|spinalis|diaphragm|\brib|sternum|costal|lumbar_vertebra|thoracic_vertebra|hallucis|digitorum_longus|digitorum_brevis|peroneus|tibialis|gastrocnem|soleus/i;
 // Brazo: huesos (húmero, radio, cúbito, mano) + músculos del brazo/antebrazo + deltoides.
 // NO incluye pec/dorsal/manguito (se anclan al tronco/escápula y se estirarían en lámina).
-const ARM_RE = /humerusr|radiusr|ulnar|deltoid|biceps_brachii|triceps_brachii|brachialis|coracobrachialis|brachioradialis|pronator|supinator|flexor_carpi|extensor_carpi|flexor_digitorum_superficialis|flexor_digitorum_profundus|extensor_digitorum_muscle|extensor_digiti_minimi|extensor_indicis|flexor_pollicis|extensor_pollicis|abductor_pollicis|palmaris|anconeus|carpal|capitate|hamate|lunate|pisiform|scaphoid|triquetrum|trapezium|trapezoid|metacarp|lumbrical|interossei|opponens|adductor_pollicis|_of_hand/i;
+// OJO: "lumbrical"/"interossei"/"opponens" sueltas también matchean músculos del PIE
+// (ej. "2nd_Dorsal_interossei_muscles_of_footr") — por eso NO van como término suelto;
+// las de mano ya quedan cubiertas por el sufijo genérico "_of_hand".
+const ARM_RE = /humerusr|radiusr|ulnar|deltoid|biceps_brachii|triceps_brachii|brachialis|coracobrachialis|brachioradialis|pronator|supinator|flexor_carpi|extensor_carpi|flexor_digitorum_superficialis|flexor_digitorum_profundus|extensor_digitorum_muscle|extensor_digiti_minimi|extensor_indicis|flexor_pollicis|extensor_pollicis|abductor_pollicis|palmaris|anconeus|carpal|capitate|hamate|lunate|pisiform|scaphoid|triquetrum|trapezium|trapezoid|metacarp|adductor_pollicis|_of_hand/i;
 
 // Articulaciones animables sobre el cuerpo completo + ambos lados.
 // moving/pivot = patrones de nombre de malla; el visor filtra además por LADO
@@ -156,7 +159,10 @@ const ARTICULABLE = {
   },
   hip: {
     pivot: /femurr/i, edge: 'max', below: true, // toda la pierna (hueso+músculo+bandas) como bloque
-    exclude: /hip_bone|sacrum|coccyx|pubic_sympys|^Ilium|Ischium|Pubis/i, // pelvis y axial se quedan fijos
+    // Pelvis/axial fijos + brazo/mano excluidos: la mano en reposo cuelga casi a la
+    // altura de la cabeza femoral (pivote), así que "todo lo de abajo" la atrapaba
+    // sin querer (se movía junto con la pierna). ARM_RE cubre húmero/antebrazo/mano.
+    exclude: new RegExp(`hip_bone|sacrum|coccyx|pubic_sympys|^Ilium|Ischium|Pubis|${ARM_RE.source}`, 'i'),
     signs: [-1, 1, 1, -1, 1, -1] // flexión: pierna adelante (verificado)
   },
   glenohumeral: {
