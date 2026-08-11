@@ -133,13 +133,39 @@ function setLayerUI(layer) {
   viewer.setLayer(layer);
 }
 // Excluir tren inferior + core/axial al articular el brazo (por si el patrón roza otra zona).
-const LOWER_BODY_RE = /femur|tibia|fibula|patella|gluteus|adductor|gracilis|sartorius|tensor_fasc|vastus|rectus_femoris|biceps_femoris|semitendinosus|semimembranosus|iliopsoas|piriformis|deep_external|hip_bone|sacrum|coccyx|pubis|ischium|ilium|psoas|rectus_abdom|abdominal_oblique|transverse_abdom|quadratus|erector|multifidus|longissimus|iliocostalis|spinalis|diaphragm|\brib|sternum|costal|lumbar_vertebra|thoracic_vertebra|hallucis|digitorum_longus|digitorum_brevis|peroneus|tibialis|gastrocnem|soleus/i;
-// Brazo: huesos (húmero, radio, cúbito, mano) + músculos del brazo/antebrazo + deltoides.
-// NO incluye pec/dorsal/manguito (se anclan al tronco/escápula y se estirarían en lámina).
-// OJO: "lumbrical"/"interossei"/"opponens" sueltas también matchean músculos del PIE
-// (ej. "2nd_Dorsal_interossei_muscles_of_footr") — por eso NO van como término suelto;
-// las de mano ya quedan cubiertas por el sufijo genérico "_of_hand".
-const ARM_RE = /humerusr|radiusr|ulnar|deltoid|biceps_brachii|triceps_brachii|brachialis|coracobrachialis|brachioradialis|pronator|supinator|flexor_carpi|extensor_carpi|flexor_digitorum_superficialis|flexor_digitorum_profundus|extensor_digitorum_muscle|extensor_digiti_minimi|extensor_indicis|flexor_pollicis|extensor_pollicis|abductor_pollicis|palmaris|anconeus|carpal|capitate|hamate|lunate|pisiform|scaphoid|triquetrum|trapezium|trapezoid|metacarp|adductor_pollicis|_of_hand/i;
+const LOWER_BODY_RE = /femur|tibia|fibula|patella|gluteus|adductor(?!_pollicis)|gracilis|sartorius|tensor_fasc|vastus|rectus_femoris|biceps_femoris|semitendinosus|semimembranosus|iliopsoas|piriformis|deep_external|hip_bone|sacrum|coccyx|pubis|ischium|ilium|acetabul|psoas|rectus_abdom|abdominal_oblique|transverse_abdom|quadratus_lumborum|erector|multifidus|longissimus|iliocostalis|spinalis|diaphragm|\brib|sternum|costal|lumbar_vertebra|thoracic_vertebra|hallucis|digitorum_longus|digitorum_brevis|peroneus|tibialis|gastrocnem|soleus|_of_foot/i;
+
+// ── Regex por segmento (validados contra los NOMBRES REALES de los GLB) ──────
+// Regla de saneo de THREE: espacios→_, se eliminan puntos; paréntesis y guiones
+// se conservan ("Radius.r"→"Radiusr", "Cervical vertebra (C3)"→"Cervical_vertebra_(C3)").
+// OJO PIE vs MANO: las falanges del PIE también se llaman "finger"
+// ("Distal_phalanx_of_fifth_finger_of_footr") → siempre finger(?!_of_foot).
+// "lumbrical/interossei/opponens" sueltas matchean músculos del PIE — nunca sueltas.
+
+// Mano completa: huesos del carpo/metacarpo/falanges + músculos intrínsecos.
+const HAND_RE = /scaphoid|lunate_bone|triquetrum|pisiform|trapeziumr|trapezoidr|capitater|hamater|metacarp|finger(?!_of_foot)|_of_hand|opponens_pollicis|palmaris_brevis|adductor_pollicis|abductor_pollicis_brevis|flexor_pollicis_brevis|abductor_digiti_minimir|sesamoid_bones_of_hand/i;
+// Conectivo de mano/muñeca que DEBE viajar con la mano (force-include vía alsoRe):
+// la "manopla" de ligamentos carpianos y sus cartílagos, que si no queda flotando.
+const HAND_SOFT_RE = /finger(?!_of_foot)|radiocarpal|intercarpal|carpometacarpal|ulnocarpal|scapholunate|lunotriquetral|capitohamate|trapezio|trapezoideocapitate|triquetrocapitate|triquetrohamate|scaphocapitate|radioscaphocapitate|radiate_carpal|pisohamate|pisometacarpal|pisotriquetral|ulnopisiform|ulnotriquetral|metacarpal_lig|metacarpophalangeal|art_cart_of_(scaphoid|lunate|triquetrum|pisiform|trapezium|trapezoid|capitate|hamate)|art_carts_of_(distal|middle|proximal)_phalanges|art_carts_of_metacarpal|(carpi|digitorum|indicis|pollicis)[\w-]*_tendon_sheath|interphalangeal|phalangeal_joint|scaphotriquetral|collateral_ligament_of_wrist|intertendinous_connections_of_extensor_digitorum|common_flexor_tendon_sheath/i;
+// Antebrazo + mano (para el codo). extensor_digitorumr (sufijo pegado) distingue
+// el del antebrazo del Extensor_digitorum_longusr del pie.
+const FOREARM_HAND_RE = new RegExp('radiusr|ulnar|brachioradialis|pronator|supinator|anconeus|flexor_carpi|extensor_carpi|palmaris|flexor_digitorum_superficialis|flexor_digitorum_profundus|extensor_digitorumr|extensor_digiti_minimi|extensor_indicis|flexor_pollicis|extensor_pollicis|abductor_pollicis|' + HAND_RE.source, 'i');
+// Conectivo del antebrazo que viaja con él al flexionar el codo (incluye los
+// cartílagos distales de radio/cúbito y el disco TFCC, que en la muñeca se
+// quedan con el antebrazo pero en codo/hombro/tronco viajan con el brazo).
+const ELBOW_SOFT_RE = new RegExp('interosseous_membrane_of_forearm|radio-ulnar|art_cart_of_radius|art_cart_of_ulna|triangular_fibro|' + HAND_SOFT_RE.source, 'i');
+// Radioulnar (prono-supinación): el RADIO rueda + la mano. SIN pronator quadratus
+// (ancla también al cúbito) y sin el resto del antebrazo.
+const RADIOULNAR_RE = new RegExp('radiusr|' + HAND_RE.source, 'i');
+// Cervical (whitelist del modo above): el modelo NO tiene cráneo ni músculos del
+// cuello — solo vértebras C1–C7 + discos + cartílagos.
+const HEAD_NECK_RE = /atlas_\(c1\)|axis_\(c2\)|cervical_vertebra|annulus_fibrosus_c|art_cart_of_(atlas|axis)|vertebra_c\d_art_cart|nucleus_pulposus_c2/i;
+
+// Brazo COMPLETO (hombro/escápula y exclude de cadera): huesos + músculos del
+// brazo/antebrazo/mano + deltoides. NO pec/dorsal/manguito (anclan al tronco).
+const ARM_RE = new RegExp('humerusr|deltoid|biceps_brachii|triceps_brachii|brachialis|coracobrachialis|' + FOREARM_HAND_RE.source, 'i');
+// Brazo + su conectivo forzado (also del hombro/escápula).
+const ARM_SOFT_RE = new RegExp(ARM_RE.source + '|' + ELBOW_SOFT_RE.source, 'i');
 
 // Articulaciones animables sobre el cuerpo completo + ambos lados.
 // moving/pivot = patrones de nombre de malla; el visor filtra además por LADO
@@ -155,7 +181,7 @@ const ARTICULABLE = {
   },
   knee: {
     pivot: /femurr/i, edge: 'min', below: true, also: /patell/i, // pierna baja + pie + rótula (bloque)
-    signs: [1, 1, 1, -1] // flexión: talón hacia atrás/arriba (verificado)
+    signs: [1, 1, -1, 1] // flexión verificada; rotaciones: interna = dedos a medial (verificado)
   },
   hip: {
     pivot: /femurr/i, edge: 'max', below: true, // toda la pierna (hueso+músculo+bandas) como bloque
@@ -163,20 +189,68 @@ const ARTICULABLE = {
     // altura de la cabeza femoral (pivote), así que "todo lo de abajo" la atrapaba
     // sin querer (se movía junto con la pierna). ARM_RE cubre húmero/antebrazo/mano.
     exclude: new RegExp(`hip_bone|sacrum|coccyx|pubic_sympys|^Ilium|Ischium|Pubis|${ARM_RE.source}`, 'i'),
-    signs: [-1, 1, 1, -1, 1, -1] // flexión: pierna adelante (verificado)
+    signs: [-1, 1, 1, -1, -1, 1] // flexión verificada; rot interna = dedos a medial (verificado)
   },
   glenohumeral: {
-    // Solo el brazo (huesos + músculos del brazo). NO pec/dorsal/manguito (láminas
-    // que se anclan al tronco y se estirarían). El conectivo se excluye global.
-    pivot: /humerusr/i, edge: 'max', moving: ARM_RE, exclude: LOWER_BODY_RE,
-    signs: [-1, 1, 1, -1, 1, -1] // flexión: brazo adelante (verificado)
+    // Solo el brazo (huesos + músculos del brazo). NO pec/dorsal (láminas que se
+    // anclan al tronco). El manguito viaja en el pivote SECUNDARIO (escápula),
+    // que gira ⅓ del ángulo en flexión/abducción = ritmo escápulo-humeral 2:1.
+    pivot: /humerusr/i, edge: 'max', moving: ARM_RE, also: ELBOW_SOFT_RE, exclude: LOWER_BODY_RE,
+    secondary: {
+      pivotRe: /scapular(?!is)/i,
+      movingRe: /scapular(?!is)|clavicler|supraspinatus|infraspinatus|teres_minor|teres_major|subscapularis/i
+    },
+    rhythm: [1 / 3, 0, 1 / 3, 0, 0, 0], // flexión y abducción; el resto solo glenohumeral
+    signs: [-1, 1, 1, -1, -1, 1] // flexión verificada; rot interna = palma hacia atrás (verificado)
   },
   scapulothoracic: {
     // Complejo del hombro (escápula + manguito + deltoides + brazo) se mueve junto.
     pivot: /scapular(?!is)/i, edge: 'max',
     moving: /scapular|supraspinatus|infraspinatus|teres_minor|teres_major|subscapularis|serratus|clavicler|deltoid/i,
-    also: ARM_RE, exclude: LOWER_BODY_RE,
+    also: ARM_SOFT_RE, exclude: LOWER_BODY_RE,
     signs: [1, -1, 1, -1, 1, -1]
+  },
+  elbow: {
+    // Pivote = borde inferior del húmero (línea del codo). Por NOMBRE, no below:
+    // la pierna derecha también está "debajo del codo" del mismo lado. Bíceps,
+    // tríceps y braquial se quedan con el húmero (cruzan la articulación).
+    pivot: /humerusr/i, edge: 'min',
+    moving: FOREARM_HAND_RE, also: ELBOW_SOFT_RE, exclude: LOWER_BODY_RE,
+    signs: [-1, -1] // flexión; extensión (rom 0) anima el retorno de la flexión
+  },
+  radioulnar: {
+    // Aproximación: el radio + la mano rotan sobre el eje vertical del radio.
+    // El cúbito y el resto del antebrazo quedan fijos (como en la realidad).
+    pivot: /radiusr/i, edge: 'min',
+    moving: RADIOULNAR_RE, also: HAND_SOFT_RE, exclude: LOWER_BODY_RE,
+    signs: [-1, 1] // pronación / supinación
+  },
+  wrist: {
+    // Pivote = borde inferior del radio (estiloides). Mueve SOLO la mano.
+    pivot: /radiusr/i, edge: 'min',
+    moving: HAND_RE, also: HAND_SOFT_RE, exclude: LOWER_BODY_RE,
+    signs: [-1, 1, 1, -1] // flexión / extensión / desviación radial / cubital
+  },
+  lumbar_spine: {
+    // COLUMNA (modo above): todo lo de encima del sacro se mueve como tronco —
+    // incluye brazos (forzados por nombre: las manos cuelgan bajo el pivote).
+    pivot: /^Sacrum$/i, edge: 'max', above: true,
+    also: new RegExp('annulus_fibrosus_l5_s1|lumbar_vertebra_\\(l5\\)|' + ARM_SOFT_RE.source, 'i'),
+    exclude: /hip_boner|coccyx|femurr|gluteus/i,
+    signs: [1, -1, -1, 1] // invertidos vs extremidades: lo móvil está ENCIMA del pivote
+  },
+  thoracic_spine: {
+    pivot: /^Lumbar_vertebra_\(L1\)$/i, edge: 'max', above: true,
+    also: new RegExp('annulus_fibrosus_t12_l1|' + ARM_SOFT_RE.source, 'i'),
+    exclude: /hip_boner|coccyx|femurr|gluteus/i,
+    signs: [1, -1, -1, 1]
+  },
+  cervical_spine: {
+    // Whitelist: solo vértebras C + discos (el modelo no tiene cráneo ni músculos
+    // del cuello; sin whitelist el trapecio giraría con el cuello).
+    pivot: /^Thoracic_vertebra_\(T1\)$/i, edge: 'max', above: true,
+    moving: HEAD_NECK_RE, also: HEAD_NECK_RE,
+    signs: [1, -1, -1, 1]
   }
 };
 const planeAxis = p => (p === 'frontal' ? 'z' : (p === 'transverse' ? 'y' : 'x'));
@@ -187,26 +261,54 @@ function onPickJoint(joint) {
   openInfoPanel();
   setLayerUI(null); // huesos + músculos juntos (se mueven en conjunto)
   if (!modelLoaded) return;
-  // Articula sobre UN lado (el visor filtra por signo de X) del cuerpo completo.
-  const ok = art && viewer.setupArticulation({ movingRe: art.moving, pivotRe: art.pivot, edge: art.edge, side: 'R', below: art.below, box: art.box, alsoRe: art.also, excludeRe: art.exclude });
+  if (!art) {
+    // Sin animación: resetea cualquier rotación previa (si no, la última
+    // articulación quedaba "trabada" en su posición girada) y solo resalta.
+    viewer.teardownFlex();
+    viewer.highlightMany(joint.bones || []);
+    return;
+  }
+  const ok = viewer.setupArticulation({
+    movingRe: art.moving, pivotRe: art.pivot, edge: art.edge, side: 'R',
+    below: art.below, above: art.above, alsoRe: art.also, excludeRe: art.exclude,
+    secondary: art.secondary
+  });
   if (!ok) { viewer.highlightMany(joint.bones || []); return; }
   const sl = document.getElementById('joint-animate');
   const movEls = document.querySelectorAll('#info .mov-sel');
-  let active = { axis: 'x', sign: 1, rom: 20 };
-  // Fija el tope del rango (cambia con el acoplamiento) y vuelve a neutral.
+  let active = { axis: 'x', sign: 1, rom: 20, inverted: false, rhythm: 0 };
+  // Aplica un ángulo del slider: signo + reparto del ritmo escápulo-humeral.
+  function setDeg(v) {
+    const deg = v * active.sign;
+    viewer.setFlex(deg, active.axis, deg * (active.rhythm || 0));
+  }
+  // Fija el tope del rango (cambia con el acoplamiento) y vuelve a la pose inicial.
+  // En movimientos invertidos (extensión 0°) el slider corre de ROM° → 0°:
+  // arranca en la pose flexionada y el máximo endereza la extremidad.
   function applyRom(rom) {
     active.rom = rom;
     if (sl) { sl.max = rom; sl.value = 0; }
     const mn = document.getElementById('anim-min'), mx = document.getElementById('anim-max');
-    if (mn) mn.textContent = '0°';
-    if (mx) mx.textContent = rom + '°';
-    viewer.setFlex(0, active.axis);
+    if (mn) mn.textContent = (active.inverted ? rom : 0) + '°';
+    if (mx) mx.textContent = (active.inverted ? 0 : rom) + '°';
+    setDeg(active.inverted ? rom : 0);
   }
   function selectMov(i) {
     const m = joint.movements[i];
-    active = { axis: planeAxis(m.plane), sign: (art.signs && art.signs[i]) || 1, rom: m.romDeg || 1 };
+    let rom = m.romDeg, sign = (art.signs && art.signs[i]) || 1, inverted = false;
+    if (!rom) {
+      // Extensión con ROM 0 (posición neutra): anima el RETORNO del movimiento
+      // pareja del mismo plano (ej. rodilla: 140° flexionada → 0° recta).
+      const p = joint.movements.findIndex(mm => mm.plane === m.plane && mm.romDeg > 0);
+      if (p !== -1) {
+        rom = joint.movements[p].romDeg;
+        sign = (art.signs && art.signs[p]) || 1;
+        inverted = true;
+      } else rom = 1;
+    }
+    active = { axis: planeAxis(m.plane), sign, rom, inverted, rhythm: (art.rhythm && art.rhythm[i]) || 0 };
     movEls.forEach((el, j) => el.classList.toggle('active', j === i));
-    applyRom(m.romDeg || 1);
+    applyRom(rom);
     // Acoplamiento: si el rango depende de otra articulación, muestra opciones.
     const cc = document.getElementById('coupling-ctrl');
     if (!cc) return;
@@ -234,8 +336,11 @@ function onPickJoint(joint) {
     applyRom(m.coupling.options[0].romDeg); // por defecto la 1ª opción
   }
   movEls.forEach((el, i) => { el.onclick = () => selectMov(i); });
-  // slider: 0 (izquierda) → límite del rango del movimiento (derecha)
-  if (sl) sl.oninput = e => viewer.setFlex(Number(e.target.value) * active.sign, active.axis);
+  // slider: izquierda → derecha recorre el rango; en invertidos va de ROM° a 0°.
+  if (sl) sl.oninput = e => {
+    const v = Number(e.target.value);
+    setDeg(active.inverted ? active.rom - v : v);
+  };
   if (movEls.length) selectMov(0);
 }
 

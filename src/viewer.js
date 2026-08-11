@@ -48,7 +48,7 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   let hideVessels = false;
   let hideFascia = true; // la fascia envuelve y tapa los músculos: oculta por defecto
   // Vasos y nervios (distraen): arterias, venas, plexos, raíces, redes/arcos vasculares.
-  const VESSEL_RE = /artery|arteries|arterial|vein|veins|venous|\bvena\b|vascular|vessel|nerve|nervus|plexus|lymph|ganglion|c\d ?root|thyrocervical|costocervical|(palmar|plantar|venous|dorsal venous).{0,6}(arch|network)/i;
+  const VESSEL_RE = /artery|arteries|arterial|vein|veins|venous|\bvena\b|vascular|vessel|nerve|nervus|plexus|lymph|ganglion|c\d ?root|thyrocervical|costocervical|(palmar|plantar|venous|dorsal venous).{0,6}(arch|network)|carpal (arch|network|branches)|dorsalis (pollicis|indicis)|radialis indicis|princeps pollicis/i;
   // Fascia (envoltorio que estorba la selección). NO el músculo tensor fasciae latae.
   const FASCIA_RE = /(brachial|antebrachial|crural|thoracolumbar)_fascia|fascia_lata|deep_fascia|fascia_of|aponeuros|retinacul/i;
   // Tejido conectivo/blando que NO se mueve limpio al articular (vuela en pedazos):
@@ -103,7 +103,21 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   // Refleja una escena al lado contrario (plano sagital). Clona materiales a
   // DoubleSide para que la geometría con winding invertido no se descarte.
   function mirrorScene(src) {
+    src.updateMatrixWorld(true);
     const m = src.clone(true);
+    // Purga del clon las mallas AXIALES (centro ≈ plano sagital x=0): su espejo
+    // se superpondría exactamente a la original (columna, esternón, sacro) y
+    // produce parpadeo (z-fighting). Umbral = 1% de la altura de la escena.
+    const size = new THREE.Box3().setFromObject(src).getSize(new THREE.Vector3());
+    const eps = (size.y || 1) * 0.01;
+    const kill = [];
+    m.traverse(o => {
+      if (o.isMesh) {
+        const cx = new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()).x;
+        if (Math.abs(cx) < eps) kill.push(o);
+      }
+    });
+    kill.forEach(o => o.parent && o.parent.remove(o));
     m.scale.x *= -1;
     m.traverse(o => {
       if (o.isMesh) {
@@ -220,27 +234,45 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   // mueven por patrón de nombre Y por lado (signo de X en el mundo), y colocamos
   // el pivote en el borde del hueso de referencia de ESE lado.
   let flexPivot = null;
+  let flexPivot2 = null; // pivote secundario anidado (ritmo escápulo-humeral)
   const centerOf = (m, cache) => {
     if (cache.has(m)) return cache.get(m);
     const c = new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3());
     cache.set(m, c); return c;
   };
 
-  // opts = { pivotRe, edge:'min'|'max', side:'L'|'R', movingRe?, below? }
+  // opts = { pivotRe, edge:'min'|'max', side:'L'|'R', movingRe?, below?, above?,
+  //          alsoRe?, excludeRe?, secondary? }
   // below=true → mueve TODO el segmento distal del lado (por debajo del pivote en
   // Y), como bloque rígido (huesos + músculos + ligamentos), sin que se separen.
-  // si no, mueve solo las mallas que matchean movingRe (para hombro/escápula).
+  // above=true → COLUMNA/TRONCO: mueve todo lo que está POR ENCIMA del pivote,
+  // de AMBOS lados + axial (tronco, brazos y cabeza viajan juntos). movingRe
+  // opcional actúa de whitelist (cervical). Sin above/below: por nombre.
+  // alsoRe = force-include por nombre que SALTA el filtro de conectivo (los
+  // ligamentos de la mano deben viajar con la mano, no quedarse flotando).
+  // secondary = { pivotRe, movingRe, edge? }: pivote ANIDADO para el ritmo
+  // escápulo-humeral (la escápula gira una fracción y el brazo la hereda).
   function setupArticulation(opts = {}) {
     teardownFlex();
-    const { movingRe, pivotRe, edge = 'max', side = 'R', below = false, box = false, alsoRe, excludeRe } = opts;
+    const { movingRe, pivotRe, edge = 'max', side = 'R', below = false, above = false, alsoRe, excludeRe, secondary } = opts;
     if (!model || !meshes.length || !pivotRe) return false;
     const wantSign = side === 'L' ? -1 : 1;
     const ctr = new Map();
     const EPS = 0.02; // umbral de línea media: estructuras axiales (sacro, columna) NO se articulan
-    const onSide = m => { const x = centerOf(m, ctr).x; return Math.abs(x) > EPS && Math.sign(x) === wantSign; };
+    // above anula el filtro de lado: los pivotes vertebrales SON axiales y el
+    // bloque superior (tronco + ambos brazos + cabeza) se mueve completo.
+    const onSide = m => {
+      if (above) return true;
+      const x = centerOf(m, ctr).x;
+      return Math.abs(x) > EPS && Math.sign(x) === wantSign;
+    };
     const excl = m => excludeRe && excludeRe.test(m.name); // estructuras que se quedan fijas
-    const also = m => alsoRe && alsoRe.test(m.name);
-    // Hueso de referencia del lado elegido → define el centro del pivote.
+    // Force-include acotado en Y al entorno del pivote: mano y pie comparten
+    // nombres de ligamentos ("interphalangeal…" idénticos), así que sin este
+    // guard un ligamento del PIE volaría colgado de la muñeca (o del tronco).
+    const ALSO_RANGE = 0.75; // el modelo mide ~2 unidades de alto
+    const also = m => alsoRe && alsoRe.test(m.name) && Math.abs(centerOf(m, ctr).y - pivotY) < ALSO_RANGE;
+    // Hueso de referencia (del lado elegido, o axial en modo above) → pivote.
     const ref = meshes.filter(m => pivotRe.test(m.name) && onSide(m));
     if (!ref.length) return false;
     const pbox = new THREE.Box3();
@@ -252,23 +284,59 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
     flexPivot.position.copy(model.worldToLocal(new THREE.Vector3(c.x, pivotY, c.z)));
     const onClean = m => onSide(m) && !excl(m);
     let moving;
-    if (below) {
-      // BLOQUE: todo lo distal del lado se mueve junto (huesos + cartílagos +
-      // músculos). NO se excluye conectivo: si no, los cartílagos del pie se
-      // quedan y se ve roto. Es un bloque rígido, no se desarma.
+    if (above) {
+      // BLOQUE SUPERIOR (columna): todo lo de ENCIMA del pivote, ambos lados,
+      // sin filtro de conectivo (discos y cartílagos viajan con el bloque).
+      // also() fuerza casos frontera: el disco del pivote y los BRAZOS — en
+      // posición anatómica las manos cuelgan por debajo del tope del sacro y
+      // sin esto se quedarían atrás (desmembradas).
+      moving = meshes.filter(m => !excl(m) &&
+        ((centerOf(m, ctr).y > pivotY && (!movingRe || movingRe.test(m.name))) || also(m)));
+    } else if (below) {
+      // BLOQUE DISTAL: todo lo de abajo del lado se mueve junto (huesos +
+      // cartílagos + músculos). NO se excluye conectivo: si no, los cartílagos
+      // del pie se quedan y se ve roto. Es un bloque rígido, no se desarma.
       moving = meshes.filter(m => onClean(m) && (centerOf(m, ctr).y < pivotY || also(m)));
     } else {
-      // POR NOMBRE (hombro/escápula): solo huesos/músculos curados, SIN conectivo
-      // (los tendones se anclan al tronco y se estirarían en lámina).
-      moving = meshes.filter(m => onClean(m) && !CONNECTIVE_RE.test(m.name) && ((movingRe && movingRe.test(m.name)) || also(m)));
+      // POR NOMBRE (hombro/codo/muñeca): huesos/músculos curados SIN conectivo
+      // (los tendones anclados al tronco se estirarían en lámina)… salvo lo que
+      // alsoRe fuerza explícitamente (ligamentos carpianos van con la mano).
+      moving = meshes.filter(m => onClean(m) && ((!CONNECTIVE_RE.test(m.name) && movingRe && movingRe.test(m.name)) || also(m)));
     }
     moving.forEach(m => flexPivot.attach(m));
+    // Pivote SECUNDARIO anidado (ritmo escápulo-humeral): la escápula/clavícula
+    // giran una fracción y el pivote del brazo cuelga de ellas — así la cabeza
+    // humeral nunca se separa de la glenoides.
+    if (secondary && moving.length) {
+      const ref2 = meshes.filter(m => secondary.pivotRe.test(m.name) && onSide(m));
+      if (ref2.length) {
+        const pbox2 = new THREE.Box3();
+        ref2.forEach(m => pbox2.expandByObject(m));
+        const y2 = secondary.edge === 'min' ? pbox2.min.y : pbox2.max.y;
+        const c2 = pbox2.getCenter(new THREE.Vector3());
+        flexPivot2 = new THREE.Group();
+        model.add(flexPivot2);
+        flexPivot2.position.copy(model.worldToLocal(new THREE.Vector3(c2.x, y2, c2.z)));
+        const claimed = new Set(moving); // no robar mallas ya adjuntadas al primario
+        meshes.filter(m => !claimed.has(m) && onSide(m) && !excl(m) &&
+            !CONNECTIVE_RE.test(m.name) && secondary.movingRe.test(m.name))
+          .forEach(m => flexPivot2.attach(m));
+        flexPivot2.attach(flexPivot); // ANIDA: el brazo hereda el giro escapular
+      }
+    }
     return moving.length > 0;
   }
-  function setFlex(deg, axis) {
+  // secDeg = fracción del giro que aporta el pivote secundario (ritmo 2:1).
+  // El primario recibe deg−secDeg y, anidado, hereda secDeg → total = deg.
+  function setFlex(deg, axis, secDeg = 0) {
     if (!flexPivot) return false;
+    const ax = axis === 'z' ? 'z' : axis === 'y' ? 'y' : 'x';
     flexPivot.rotation.set(0, 0, 0);
-    flexPivot.rotation[axis === 'z' ? 'z' : axis === 'y' ? 'y' : 'x'] = deg * Math.PI / 180;
+    flexPivot.rotation[ax] = (deg - secDeg) * Math.PI / 180;
+    if (flexPivot2) {
+      flexPivot2.rotation.set(0, 0, 0);
+      flexPivot2.rotation[ax] = secDeg * Math.PI / 180;
+    }
     return true;
   }
   function teardownFlex() {
@@ -277,11 +345,17 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
       // del mundo, así que si el pivote sigue rotado, las mallas se quedarían
       // trabadas en la posición girada al cambiar de articulación.
       flexPivot.rotation.set(0, 0, 0);
-      flexPivot.updateMatrixWorld(true);
+      if (flexPivot2) flexPivot2.rotation.set(0, 0, 0);
+      model.updateMatrixWorld(true);
       [...flexPivot.children].forEach(ch => model.attach(ch));
-      model.remove(flexPivot);
+      (flexPivot2 || model).remove(flexPivot); // el primario puede colgar del secundario
+      if (flexPivot2) {
+        [...flexPivot2.children].forEach(ch => model.attach(ch));
+        model.remove(flexPivot2);
+      }
     }
     flexPivot = null;
+    flexPivot2 = null;
   }
 
   // ── Resaltado (uno o varios) ────────────────────────────────────────────────
