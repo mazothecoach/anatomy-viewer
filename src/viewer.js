@@ -235,6 +235,7 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   // el pivote en el borde del hueso de referencia de ESE lado.
   let flexPivot = null;
   let flexPivot2 = null; // pivote secundario anidado (ritmo escápulo-humeral)
+  let posePivot = null;  // pivote de POSE estático (articulación acoplada pre-posicionada)
   const centerOf = (m, cache) => {
     if (cache.has(m)) return cache.get(m);
     const c = new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3());
@@ -254,7 +255,7 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   // escápulo-humeral (la escápula gira una fracción y el brazo la hereda).
   function setupArticulation(opts = {}) {
     teardownFlex();
-    const { movingRe, pivotRe, edge = 'max', side = 'R', below = false, above = false, alsoRe, excludeRe, secondary } = opts;
+    const { movingRe, pivotRe, edge = 'max', side = 'R', below = false, above = false, alsoRe, excludeRe, secondary, pose, alsoRange } = opts;
     if (!model || !meshes.length || !pivotRe) return false;
     const wantSign = side === 'L' ? -1 : 1;
     const ctr = new Map();
@@ -270,7 +271,9 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
     // Force-include acotado en Y al entorno del pivote: mano y pie comparten
     // nombres de ligamentos ("interphalangeal…" idénticos), así que sin este
     // guard un ligamento del PIE volaría colgado de la muñeca (o del tronco).
-    const ALSO_RANGE = 0.75; // el modelo mide ~2 unidades de alto
+    // El rango es por-articulación: hombro/escápula necesitan alcanzar la punta
+    // de los dedos (~1.0), la muñeca debe quedarse corta del pie (~0.9).
+    const ALSO_RANGE = alsoRange || 0.75; // el modelo mide ~2 unidades de alto
     const also = m => alsoRe && alsoRe.test(m.name) && Math.abs(centerOf(m, ctr).y - pivotY) < ALSO_RANGE;
     // Hueso de referencia (del lado elegido, o axial en modo above) → pivote.
     const ref = meshes.filter(m => pivotRe.test(m.name) && onSide(m));
@@ -324,6 +327,41 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
         flexPivot2.attach(flexPivot); // ANIDA: el brazo hereda el giro escapular
       }
     }
+    // Pivote de POSE estático: coloca la articulación ACOPLADA en la posición
+    // que dice la opción del acoplamiento (ej. "rodilla flexionada" → la rodilla
+    // ARRANCA doblada mientras se anima la cadera). inner=true si la articulación
+    // posada es DISTAL (rodilla bajo cadera, codo bajo hombro): el sub-bloque
+    // distal cuelga del pivote primario. inner=false si es PROXIMAL (cadera
+    // sobre rodilla): el pivote de pose envuelve al primario y carga además el
+    // segmento intermedio (el muslo) — así "rodilla flexionada con cadera a 90°"
+    // se ve como flexión sentada.
+    if (pose && pose.deg && moving.length) {
+      const ref3 = meshes.filter(m => pose.pivotRe.test(m.name) && onSide(m));
+      if (ref3.length) {
+        const pbox3 = new THREE.Box3();
+        ref3.forEach(m => pbox3.expandByObject(m));
+        const y3 = pose.edge === 'min' ? pbox3.min.y : pbox3.max.y;
+        const c3 = pbox3.getCenter(new THREE.Vector3());
+        posePivot = new THREE.Group();
+        model.add(posePivot);
+        posePivot.position.copy(model.worldToLocal(new THREE.Vector3(c3.x, y3, c3.z)));
+        const poseAlso = m => pose.alsoRe && pose.alsoRe.test(m.name);
+        if (pose.inner) {
+          [...flexPivot.children]
+            .filter(ch => ch.isMesh && (centerOf(ch, ctr).y < y3 || poseAlso(ch)))
+            .forEach(m => posePivot.attach(m));
+          flexPivot.attach(posePivot);
+        } else {
+          const claimed = new Set([...flexPivot.children]);
+          meshes.filter(m => !claimed.has(m) && onSide(m) && !excl(m) &&
+              (centerOf(m, ctr).y < y3 || poseAlso(m)))
+            .forEach(m => posePivot.attach(m));
+          posePivot.attach(flexPivot);
+        }
+        const axp = pose.axis === 'z' ? 'z' : pose.axis === 'y' ? 'y' : 'x';
+        posePivot.rotation[axp] = pose.deg * (pose.sign || 1) * Math.PI / 180;
+      }
+    }
     return moving.length > 0;
   }
   // secDeg = fracción del giro que aporta el pivote secundario (ritmo 2:1).
@@ -342,20 +380,23 @@ export function createViewer(canvas, { onSelect, isMobile = false } = {}) {
   function teardownFlex() {
     if (flexPivot && model) {
       // Vuelve a neutral ANTES de desenparentar: attach() conserva el transform
-      // del mundo, así que si el pivote sigue rotado, las mallas se quedarían
+      // del mundo, así que si algún pivote sigue rotado, las mallas se quedarían
       // trabadas en la posición girada al cambiar de articulación.
       flexPivot.rotation.set(0, 0, 0);
       if (flexPivot2) flexPivot2.rotation.set(0, 0, 0);
+      if (posePivot) posePivot.rotation.set(0, 0, 0);
       model.updateMatrixWorld(true);
-      [...flexPivot.children].forEach(ch => model.attach(ch));
-      (flexPivot2 || model).remove(flexPivot); // el primario puede colgar del secundario
-      if (flexPivot2) {
-        [...flexPivot2.children].forEach(ch => model.attach(ch));
-        model.remove(flexPivot2);
-      }
+      // Reancla las MALLAS de cada pivote al modelo; los grupos anidados
+      // (posePivot⊂flexPivot⊂flexPivot2, en cualquier combinación) se quitan al final.
+      [posePivot, flexPivot, flexPivot2].forEach(p => {
+        if (!p) return;
+        [...p.children].forEach(ch => { if (ch.isMesh) model.attach(ch); });
+      });
+      [posePivot, flexPivot, flexPivot2].forEach(p => { if (p && p.parent) p.parent.remove(p); });
     }
     flexPivot = null;
     flexPivot2 = null;
+    posePivot = null;
   }
 
   // ── Resaltado (uno o varios) ────────────────────────────────────────────────

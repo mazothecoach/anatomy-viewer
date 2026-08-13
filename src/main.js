@@ -146,14 +146,19 @@ const LOWER_BODY_RE = /femur|tibia|fibula|patella|gluteus|adductor(?!_pollicis)|
 const HAND_RE = /scaphoid|lunate_bone|triquetrum|pisiform|trapeziumr|trapezoidr|capitater|hamater|metacarp|finger(?!_of_foot)|_of_hand|opponens_pollicis|palmaris_brevis|adductor_pollicis|abductor_pollicis_brevis|flexor_pollicis_brevis|abductor_digiti_minimir|sesamoid_bones_of_hand/i;
 // Conectivo de mano/muñeca que DEBE viajar con la mano (force-include vía alsoRe):
 // la "manopla" de ligamentos carpianos y sus cartílagos, que si no queda flotando.
-const HAND_SOFT_RE = /finger(?!_of_foot)|radiocarpal|intercarpal|carpometacarpal|ulnocarpal|scapholunate|lunotriquetral|capitohamate|trapezio|trapezoideocapitate|triquetrocapitate|triquetrohamate|scaphocapitate|radioscaphocapitate|radiate_carpal|pisohamate|pisometacarpal|pisotriquetral|ulnopisiform|ulnotriquetral|metacarpal_lig|metacarpophalangeal|art_cart_of_(scaphoid|lunate|triquetrum|pisiform|trapezium|trapezoid|capitate|hamate)|art_carts_of_(distal|middle|proximal)_phalanges|art_carts_of_metacarpal|(carpi|digitorum|indicis|pollicis)[\w-]*_tendon_sheath|interphalangeal|phalangeal_joint|scaphotriquetral|collateral_ligament_of_wrist|intertendinous_connections_of_extensor_digitorum|common_flexor_tendon_sheath/i;
+const HAND_SOFT_RE = /finger(?!_of_foot)|radiocarpal|intercarpal|carpometacarpal|ulnocarpal|scapholunate|lunotriquetral|capitohamate|trapezio|trapezoideocapitate|triquetrocapitate|triquetrohamate|scaphocapitate|radioscaphocapitate|radiate_carpal|pisohamate|pisometacarpal|pisotriquetral|ulnopisiform|ulnotriquetral|metacarpal_lig|metacarpophalangeal|art_cart_of_(scaphoid|lunate|triquetrum|pisiform|trapezium|trapezoid|capitate|hamate)|art_carts_of_(distal|middle|proximal)_phalanges|art_carts_of_metacarpal|(carpi|digitorum|digiti|indicis|pollicis)[\w-]*_tendon_sheath|interphalangeal|phalangeal_joint|metacarpal_joint|fibrous_sheath_of_digits|scaphotriquetral|collateral_ligament_of_wrist|intertendinous_connections_of_extensor_digitorum|common_flexor_tendon_sheath/i;
 // Antebrazo + mano (para el codo). extensor_digitorumr (sufijo pegado) distingue
 // el del antebrazo del Extensor_digitorum_longusr del pie.
 const FOREARM_HAND_RE = new RegExp('radiusr|ulnar|brachioradialis|pronator|supinator|anconeus|flexor_carpi|extensor_carpi|palmaris|flexor_digitorum_superficialis|flexor_digitorum_profundus|extensor_digitorumr|extensor_digiti_minimi|extensor_indicis|flexor_pollicis|extensor_pollicis|abductor_pollicis|' + HAND_RE.source, 'i');
-// Conectivo del antebrazo que viaja con él al flexionar el codo (incluye los
-// cartílagos distales de radio/cúbito y el disco TFCC, que en la muñeca se
-// quedan con el antebrazo pero en codo/hombro/tronco viajan con el brazo).
-const ELBOW_SOFT_RE = new RegExp('interosseous_membrane_of_forearm|radio-ulnar|art_cart_of_radius|art_cart_of_ulna|triangular_fibro|' + HAND_SOFT_RE.source, 'i');
+// Conectivo del antebrazo/codo que viaja con él: membrana interósea, cartílagos
+// distales de radio/cúbito, TFCC, y el conectivo del CODO (bursas del olécranon,
+// cápsula, ligamentos anular/cuadrado/colaterales, tendones comunes, bursas
+// bicipitoradial/cubital) — sin esto quedan flotando al levantar el brazo.
+const ELBOW_SOFT_RE = new RegExp('interosseous_membrane_of_forearm|radio-ulnar|art_cart_of_radius|art_cart_of_ulna|triangular_fibro|olecranon|capsule_of_elbow|quadrate_ligament|radial_annular|collateral_ligament_of_elbow|common_tendon_of|bicipitoradial|cubital_bursa|bursa_of_triceps|biceps_brachii_tendon_sheath|' + HAND_SOFT_RE.source, 'i');
+// Conectivo del propio húmero (septos intermusculares del brazo, cartílago distal
+// del húmero): viaja solo cuando se mueve el BRAZO ENTERO (hombro/escápula), no
+// con el antebrazo en el codo (los septos recorren todo el húmero).
+const ARM_JOINT_RE = /intermuscular_septum_of_arm|art_cart_of_humerus/i;
 // Radioulnar (prono-supinación): el RADIO rueda + la mano. SIN pronator quadratus
 // (ancla también al cúbito) y sin el resto del antebrazo.
 const RADIOULNAR_RE = new RegExp('radiusr|' + HAND_RE.source, 'i');
@@ -177,10 +182,16 @@ const ARTICULABLE = {
     // Pivote en el TOPE del astrágalo (= articulación del tobillo). Con tibia/peroné
     // 'min' los maléolos bajan tanto que el corte dejaba medio pie fuera.
     pivot: /talusr/i, edge: 'max', below: true, // mueve TODO el pie como bloque
+    // "rodilla flexionada" (Silfverskiöld): la rodilla se dobla de verdad (pose
+    // PROXIMAL: el pivote de pose envuelve al del tobillo).
+    poseJoint: { label: 'rodilla', pivot: /femurr/i, edge: 'min', axis: 'x', sign: 1, inner: false, alsoRe: /patell/i, degWhen: { flexionada: 45 } },
     signs: [-1, 1, 1, -1]
   },
   knee: {
     pivot: /femurr/i, edge: 'min', below: true, also: /patell/i, // pierna baja + pie + rótula (bloque)
+    // "cadera flexionada": la cadera se dobla 90° (pose PROXIMAL) → la flexión
+    // de rodilla se ve como sentado, que es como se evalúa.
+    poseJoint: { label: 'cadera', pivot: /femurr/i, edge: 'max', axis: 'x', sign: -1, inner: false, degWhen: { flexionada: 90 } },
     signs: [1, 1, -1, 1] // flexión verificada; rotaciones: interna = dedos a medial (verificado)
   },
   hip: {
@@ -189,25 +200,34 @@ const ARTICULABLE = {
     // altura de la cabeza femoral (pivote), así que "todo lo de abajo" la atrapaba
     // sin querer (se movía junto con la pierna). ARM_RE cubre húmero/antebrazo/mano.
     exclude: new RegExp(`hip_bone|sacrum|coccyx|pubic_sympys|^Ilium|Ischium|Pubis|${ARM_RE.source}`, 'i'),
+    // "rodilla flexionada": la rodilla arranca doblada (pose DISTAL dentro del bloque).
+    poseJoint: { label: 'rodilla', pivot: /femurr/i, edge: 'min', axis: 'x', sign: 1, inner: true, alsoRe: /patell/i, degWhen: { flexionada: 90 } },
     signs: [-1, 1, 1, -1, -1, 1] // flexión verificada; rot interna = dedos a medial (verificado)
   },
   glenohumeral: {
     // Solo el brazo (huesos + músculos del brazo). NO pec/dorsal (láminas que se
     // anclan al tronco). El manguito viaja en el pivote SECUNDARIO (escápula),
     // que gira ⅓ del ángulo en flexión/abducción = ritmo escápulo-humeral 2:1.
-    pivot: /humerusr/i, edge: 'max', moving: ARM_RE, also: ELBOW_SOFT_RE, exclude: LOWER_BODY_RE,
+    pivot: /humerusr/i, edge: 'max', moving: ARM_RE,
+    also: new RegExp(ELBOW_SOFT_RE.source + '|' + ARM_JOINT_RE.source, 'i'),
+    exclude: LOWER_BODY_RE,
+    alsoRange: 1.2, // el pivote (cabeza humeral) está lejos de la punta de los dedos
     secondary: {
       pivotRe: /scapular(?!is)/i,
       movingRe: /scapular(?!is)|clavicler|supraspinatus|infraspinatus|teres_minor|teres_major|subscapularis/i
     },
     rhythm: [1 / 3, 0, 1 / 3, 0, 0, 0], // flexión y abducción; el resto solo glenohumeral
+    // Pose acoplada: "codo flexionado" dobla el codo de verdad antes de animar.
+    poseJoint: { label: 'codo', pivot: /humerusr/i, edge: 'min', axis: 'x', sign: -1, inner: true, degWhen: { flexionado: 90 } },
     signs: [-1, 1, 1, -1, -1, 1] // flexión verificada; rot interna = palma hacia atrás (verificado)
   },
   scapulothoracic: {
     // Complejo del hombro (escápula + manguito + deltoides + brazo) se mueve junto.
     pivot: /scapular(?!is)/i, edge: 'max',
     moving: /scapular|supraspinatus|infraspinatus|teres_minor|teres_major|subscapularis|serratus|clavicler|deltoid/i,
-    also: ARM_SOFT_RE, exclude: LOWER_BODY_RE,
+    also: new RegExp(ARM_SOFT_RE.source + '|' + ARM_JOINT_RE.source, 'i'),
+    exclude: LOWER_BODY_RE,
+    alsoRange: 1.2,
     signs: [1, -1, 1, -1, 1, -1]
   },
   elbow: {
@@ -268,11 +288,27 @@ function onPickJoint(joint) {
     viewer.highlightMany(joint.bones || []);
     return;
   }
-  const ok = viewer.setupArticulation({
-    movingRe: art.moving, pivotRe: art.pivot, edge: art.edge, side: 'R',
-    below: art.below, above: art.above, alsoRe: art.also, excludeRe: art.exclude,
-    secondary: art.secondary
-  });
+  let poseDeg = 0; // pose de la articulación acoplada (ej. rodilla doblada 90°)
+  function rebuild() {
+    return viewer.setupArticulation({
+      movingRe: art.moving, pivotRe: art.pivot, edge: art.edge, side: 'R',
+      below: art.below, above: art.above, alsoRe: art.also, excludeRe: art.exclude,
+      secondary: art.secondary, alsoRange: art.alsoRange,
+      pose: (art.poseJoint && poseDeg) ? {
+        pivotRe: art.poseJoint.pivot, edge: art.poseJoint.edge, axis: art.poseJoint.axis,
+        sign: art.poseJoint.sign, inner: art.poseJoint.inner, alsoRe: art.poseJoint.alsoRe, deg: poseDeg
+      } : null
+    });
+  }
+  // Pose que corresponde a una opción de acoplamiento ("flexionada" → 90°), solo
+  // si la etiqueta del acoplamiento habla de la articulación que sabemos posar.
+  const normKey = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  function optPose(coupling, opt) {
+    if (!art.poseJoint || !coupling) return 0;
+    if (normKey(tf(coupling.label)) !== art.poseJoint.label) return 0;
+    return art.poseJoint.degWhen[normKey(tf(opt.name))] || 0;
+  }
+  const ok = rebuild();
   if (!ok) { viewer.highlightMany(joint.bones || []); return; }
   const sl = document.getElementById('joint-animate');
   const movEls = document.querySelectorAll('#info .mov-sel');
@@ -308,6 +344,10 @@ function onPickJoint(joint) {
     }
     active = { axis: planeAxis(m.plane), sign, rom, inverted, rhythm: (art.rhythm && art.rhythm[i]) || 0 };
     movEls.forEach((el, j) => el.classList.toggle('active', j === i));
+    // La opción de acoplamiento por defecto puede exigir una POSE (ej. "rodilla
+    // flexionada" arranca con la rodilla doblada) → reconstruir la articulación.
+    poseDeg = m.coupling ? optPose(m.coupling, m.coupling.options[0]) : 0;
+    rebuild();
     applyRom(rom);
     // Acoplamiento: si el rango depende de otra articulación, muestra opciones.
     const cc = document.getElementById('coupling-ctrl');
@@ -325,6 +365,8 @@ function onPickJoint(joint) {
       b.onclick = () => {
         cc.querySelectorAll('.coupling-opt').forEach(x => x.classList.remove('active'));
         b.classList.add('active');
+        poseDeg = optPose(m.coupling, o); // "flexionada" dobla de verdad la articulación acoplada
+        rebuild();
         applyRom(o.romDeg);
       };
       cc.appendChild(b);
