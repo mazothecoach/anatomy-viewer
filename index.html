@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
   <title>Visor Anatómico — Mazothecoach</title>
-  <script type="module" crossorigin src="/anatomy-viewer/assets/index-DwKnzhx0.js"></script>
-  <link rel="stylesheet" crossorigin href="/anatomy-viewer/assets/index-BkOWicAg.css">
+  <script type="module" crossorigin src="/anatomy-viewer/assets/index-DJyX4Pti.js"></script>
+  <link rel="stylesheet" crossorigin href="/anatomy-viewer/assets/index-p2NB8Msb.css">
 </head>
 <body>
   <div id="app">
@@ -79,6 +79,20 @@
     </aside>
 
     <div id="scrim" class="scrim"></div>
+
+    <button id="wiki-chat-btn" class="wiki-chat-btn" data-i18n-title="wiki_chat_open">💬</button>
+    <section id="wiki-chat" class="wiki-chat hidden">
+      <header class="wc-head">
+        <strong data-i18n="wiki_chat_title"></strong>
+        <button id="wiki-chat-close" class="wc-close" data-i18n-title="close">✕</button>
+      </header>
+      <div id="wiki-chat-msgs" class="wc-msgs"></div>
+      <form id="wiki-chat-form" class="wc-form">
+        <input id="wiki-chat-input" type="text" maxlength="500" autocomplete="off" data-i18n-ph="wiki_chat_ph" />
+        <button type="submit" data-i18n="wiki_chat_send"></button>
+      </form>
+      <div class="wc-disclaimer" data-i18n="wiki_chat_disclaimer"></div>
+    </section>
 
     <footer class="credit">
       <a href="https://notebook.google.com/notebook/fedd18fd-f1a0-428a-b07a-d1848e8ef391" target="_blank" rel="noopener" class="about-link" data-i18n="wiki_label"></a>
