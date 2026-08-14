@@ -7,6 +7,7 @@ import {
   setStatus, showEmpty, showProgress, applyStaticStrings, openInfoPanel
 } from './ui.js';
 import { setLang, t, tf } from './i18n.js';
+import { initWikiChat } from './wikiChat.js';
 
 import muscles from './data/muscles.json';
 import bones from './data/bones.json';
@@ -502,6 +503,8 @@ modelSelect.addEventListener('change', () => {
 
 // Fascia: oculta por defecto (deja seleccionar músculos); el toggle la muestra.
 document.getElementById('show-fascia').addEventListener('change', e => viewer.setHideFascia(!e.target.checked));
+
+initWikiChat();
 
 if (params.model) loadCurrent([params.model]);
 else loadCurrent(); // por defecto: cuerpo completo + ambos lados

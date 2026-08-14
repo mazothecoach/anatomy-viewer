@@ -1,0 +1,19 @@
+name = "mazowiki"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+# KV para los contadores de rate limit.
+# Crear con:  npx wrangler kv namespace create RATE
+# y pegar el id que imprime aquí abajo.
+[[kv_namespaces]]
+binding = "RATE"
+id = "PEGA_AQUI_EL_ID_DEL_KV"
+
+[vars]
+# Límites ajustables sin tocar código (redeploy con `npx wrangler deploy`)
+RATE_LIMIT_IP_HOUR = "10"      # mensajes por IP por hora
+RATE_LIMIT_GLOBAL_DAY = "300"  # mensajes totales por día (protege tu gasto)
+
+# La API key NO va aquí. Se guarda como secret:
+#   npx wrangler secret put ANTHROPIC_API_KEY

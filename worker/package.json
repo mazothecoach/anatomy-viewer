@@ -1,0 +1,16 @@
+{
+  "name": "mazowiki-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "corpus": "node build-corpus.mjs",
+    "dev": "wrangler dev",
+    "deploy": "npm run corpus && wrangler deploy"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.116.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
