@@ -16,3 +16,4 @@ dist/
 
 worker/.dev.vars
 worker/node_modules
+worker/.wrangler
