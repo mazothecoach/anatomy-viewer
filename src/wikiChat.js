@@ -68,12 +68,91 @@ async function send(text) {
   }
 }
 
+// Mover + redimensionar el panel (solo desktop con mouse; en cel queda el sheet).
+// Persiste posición/tamaño en localStorage y agrega un botón ⟲ para resetear.
+// Solo se guarda tras un GESTO del usuario (drag o resize nativo): abrir el
+// panel o un cambio de layout no deben congelar la posición default.
+function initDragResize(panel) {
+  if (!window.matchMedia('(min-width: 768px) and (pointer: fine)').matches) return;
+  const head = panel.querySelector('.wc-head');
+  panel.classList.add('wc-free');
+
+  const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
+  const anchored = () => !!panel.style.left; // ya convertido de right/bottom a left/top
+  const save = () => {
+    const r = panel.getBoundingClientRect();
+    if (r.width < 50) return; // oculto: no guardar ceros
+    localStorage.setItem('wcRect', JSON.stringify({ l: r.left, t: r.top, w: r.width, h: r.height }));
+  };
+  const apply = r => {
+    panel.style.left = clamp(r.l, 0, window.innerWidth - 120) + 'px';
+    panel.style.top = clamp(r.t, 0, window.innerHeight - 120) + 'px';
+    panel.style.right = 'auto';
+    panel.style.bottom = 'auto';
+    if (r.w) panel.style.width = clamp(r.w, 280, window.innerWidth) + 'px';
+    if (r.h) panel.style.height = clamp(r.h, 320, window.innerHeight) + 'px';
+  };
+  try {
+    const saved = JSON.parse(localStorage.getItem('wcRect') || 'null');
+    if (saved) apply(saved);
+  } catch { /* rect corrupto: ignorar */ }
+
+  // Cualquier gesto sobre el panel (incluye el grip de resize nativo): marcar
+  // interacción y anclar a left/top para que el resize no crezca invertido.
+  let interacting = false;
+  panel.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    interacting = true;
+    if (!anchored()) {
+      const r = panel.getBoundingClientRect();
+      apply({ l: r.left, t: r.top });
+    }
+  });
+  window.addEventListener('pointerup', () => { setTimeout(() => { interacting = false; }, 200); });
+
+  let drag = null;
+  const endDrag = () => { if (drag) { drag = null; save(); } };
+  head.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || e.target.closest('button')) return;
+    const r = panel.getBoundingClientRect();
+    drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+    head.setPointerCapture(e.pointerId);
+  });
+  head.addEventListener('pointermove', e => {
+    if (drag) apply({ l: e.clientX - drag.dx, t: e.clientY - drag.dy });
+  });
+  head.addEventListener('pointerup', endDrag);
+  head.addEventListener('pointercancel', endDrag);
+  head.addEventListener('lostpointercapture', endDrag);
+
+  // Resize nativo (CSS resize: both): guardar solo si viene de un gesto real.
+  new ResizeObserver(() => {
+    if (interacting && !panel.classList.contains('hidden')) save();
+  }).observe(panel);
+
+  // Si la ventana cambia de tamaño, re-clampear para que nunca quede fuera.
+  window.addEventListener('resize', () => {
+    if (!anchored()) return;
+    const r = panel.getBoundingClientRect();
+    apply({ l: r.left, t: r.top });
+  });
+
+  const reset = document.createElement('button');
+  reset.className = 'wc-reset';
+  reset.type = 'button';
+  reset.title = t('wiki_chat_reset');
+  reset.textContent = '⟲';
+  reset.onclick = () => { interacting = false; localStorage.removeItem('wcRect'); panel.style.cssText = ''; };
+  head.insertBefore(reset, head.querySelector('.wc-close'));
+}
+
 export function initWikiChat() {
   const btn = document.getElementById('wiki-chat-btn');
   const panel = document.getElementById('wiki-chat');
   const form = document.getElementById('wiki-chat-form');
   const input = document.getElementById('wiki-chat-input');
   let greeted = false;
+  initDragResize(panel);
 
   btn.onclick = () => {
     panel.classList.toggle('hidden');

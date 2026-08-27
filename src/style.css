@@ -276,3 +276,10 @@ body.minimal .right:has(.placeholder) { display: none; }
   padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
 .wc-disclaimer { font-size: 10px; color: var(--text-dim); text-align: center; padding: 0 12px 8px; }
 .wc-msg a { overflow-wrap: anywhere; }
+/* Desktop: el panel se puede mover (header) y redimensionar (esquina inferior derecha) */
+@media (min-width: 768px) {
+  .wiki-chat.wc-free { resize: both; min-width: 280px; min-height: 320px; max-width: 92vw; max-height: 92dvh; }
+  .wiki-chat.wc-free .wc-head { cursor: move; user-select: none; touch-action: none; }
+}
+.wc-reset { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; margin-left: auto; margin-right: 4px; }
+.wc-reset:hover, .wc-close:hover { color: var(--accent); }
