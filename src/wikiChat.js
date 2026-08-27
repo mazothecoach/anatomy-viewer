@@ -4,7 +4,7 @@
 import { t } from './i18n.js';
 
 // ← Pegar aquí la URL que imprime `npm run deploy` en worker/ (mazowiki)
-const API_URL = 'https://mazowiki.TU-SUBDOMINIO.workers.dev';
+const API_URL = 'https://mazowiki.mazothecoach.workers.dev';
 const NOTEBOOK_URL = 'https://notebook.google.com/notebook/fedd18fd-f1a0-428a-b07a-d1848e8ef391';
 
 const configured = !API_URL.includes('TU-SUBDOMINIO');

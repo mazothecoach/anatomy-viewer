@@ -8,7 +8,7 @@ compatibility_flags = ["nodejs_compat"]
 # y pegar el id que imprime aquí abajo.
 [[kv_namespaces]]
 binding = "RATE"
-id = "PEGA_AQUI_EL_ID_DEL_KV"
+id = "bdca7a79658c439a99e7143f0845fee0"
 
 [vars]
 # Límites ajustables sin tocar código (redeploy con `npx wrangler deploy`)
