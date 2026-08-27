@@ -90,12 +90,33 @@ function cors(origin) {
 const json = (obj, status, headers) => new Response(JSON.stringify(obj), { status, headers });
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin') || '';
     const headers = cors(origin);
 
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
-    if (request.method === 'GET') return json({ ok: true, service: 'mazowiki' }, 200, headers);
+    if (request.method === 'GET') {
+      const url = new URL(request.url);
+      // Dudas registradas (solo Mazo, con clave admin): alimenta el reporte
+      // semanal de los viernes y la lista de videos por grabar.
+      if (url.pathname === '/questions') {
+        if (!env.ADMIN_KEY || url.searchParams.get('admin') !== env.ADMIN_KEY) {
+          return json({ error: 'forbidden' }, 403, headers);
+        }
+        const keys = [];
+        let cursor;
+        do {
+          const page = await env.RATE.list({ prefix: 'q:', cursor });
+          keys.push(...page.keys);
+          cursor = page.list_complete ? null : page.cursor;
+        } while (cursor);
+        const questions = (await Promise.all(
+          keys.map(async k => { try { return JSON.parse(await env.RATE.get(k.name)); } catch { return null; } }
+        ))).filter(Boolean).sort((a, b) => (a.t < b.t ? -1 : 1));
+        return json({ count: questions.length, questions }, 200, headers);
+      }
+      return json({ ok: true, service: 'mazowiki' }, 200, headers);
+    }
     if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405, headers);
     if (origin && !ALLOWED_ORIGINS.includes(origin)) return json({ error: 'forbidden_origin' }, 403, headers);
 
@@ -119,6 +140,16 @@ export default {
 
     const question = msgs[msgs.length - 1].content;
     const picked = pickSections(question);
+
+    // Registro de dudas (90 días): alimenta el reporte semanal de Mazo.
+    // `video` = si alguna sección de video matcheó (las que no, son ideas de contenido).
+    const hasVideo = picked.some(s => /^Video:/i.test(s.title));
+    const nowIso = new Date().toISOString();
+    ctx.waitUntil(env.RATE.put(
+      `q:${nowIso}:${Math.random().toString(36).slice(2, 6)}`,
+      JSON.stringify({ t: nowIso, q: question, video: hasVideo }),
+      { expirationTtl: 60 * 60 * 24 * 90 }
+    ));
     const dynamicContext = picked.length
       ? `\n\n# Secciones relevantes de la wiki\n\n${picked.map(s => `(${s.doc})\n${s.text}`).join('\n\n')}`
       : '';
