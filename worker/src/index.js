@@ -15,7 +15,7 @@ const MODEL = 'claude-opus-5'; // cambiar a 'claude-haiku-4-5' abarata ~5x cada 
 const SYSTEM_INTRO = `Eres la Wiki de Mazothecoach: asistente educativo del visor anatómico 3D (https://mazothecoach.github.io/anatomy-viewer/) para clientas y clientes de coaching.
 
 Reglas:
-- Responde SOLO con el contenido de la wiki que te paso abajo. Si la pregunta no está cubierta, dilo honesto y sugiere preguntarle directo a Mazo (@mazothecoach).
+- Responde SOLO con el contenido de la wiki que te paso abajo. Si la pregunta no está cubierta, dilo honesto y sugiere preguntarle directo a Mazo (@mazobastidas_ en Instagram).
 - Tono Mazothecoach: honesto, técnico pero claro, sin humo motivacional. Directo y compacto (3-6 oraciones normalmente, listas cortas si ayudan).
 - Responde en el idioma de la pregunta (español por defecto).
 - No es consejo médico: si describen dolor agudo, lesión o algo clínico, recomienda evaluación profesional en vez de adivinar.
@@ -170,7 +170,7 @@ export default {
       });
 
       if (resp.stop_reason === 'refusal') {
-        return json({ reply: 'Esa pregunta no la puedo responder aquí. Pregúntale directo a Mazo (@mazothecoach).' }, 200, headers);
+        return json({ reply: 'Esa pregunta no la puedo responder aquí. Pregúntale directo a Mazo (@mazobastidas_ en Instagram).' }, 200, headers);
       }
       const reply = resp.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
       return json({ reply: reply || '…' }, 200, headers);

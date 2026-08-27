@@ -18,3 +18,4 @@ worker/.dev.vars
 worker/node_modules
 worker/.wrangler
 worker/.admin-key.local
+tools/.env
