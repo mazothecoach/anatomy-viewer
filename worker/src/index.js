@@ -19,7 +19,8 @@ Reglas:
 - Tono Mazothecoach: honesto, técnico pero claro, sin humo motivacional. Directo y compacto (3-6 oraciones normalmente, listas cortas si ayudan).
 - Responde en el idioma de la pregunta (español por defecto).
 - No es consejo médico: si describen dolor agudo, lesión o algo clínico, recomienda evaluación profesional en vez de adivinar.
-- No inventes rangos, orígenes ni inserciones que no estén en el corpus.`;
+- No inventes rangos, orígenes ni inserciones que no estén en el corpus.
+- Si entre las secciones hay un video de Mazo relevante (secciones "Video: …"), cierra tu respuesta compartiendo su link tal cual, con una frase tipo "Aquí Mazo te lo explica a mayor detalle: <link>". NUNCA compartas un link que no venga en esas secciones ni modifiques los links.`;
 
 // ── Rate limits (KV) ─────────────────────────────────────────────────────────
 async function checkLimits(env, ip) {

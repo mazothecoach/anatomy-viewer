@@ -12,8 +12,11 @@ const history = [];
 let busy = false;
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-// Markdown mínimo: **negritas** y saltos de línea.
-const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+// Markdown mínimo: **negritas**, links clickeables y saltos de línea.
+const md = s => esc(s)
+  .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+  .replace(/(https?:\/\/[^\s<]+[^\s<.,)])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>')
+  .replace(/\n/g, '<br>');
 
 function bubble(kind, html) {
   const box = document.getElementById('wiki-chat-msgs');

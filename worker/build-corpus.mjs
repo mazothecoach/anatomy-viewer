@@ -1,7 +1,7 @@
 // Convierte los .md de la wiki en src/corpus.js para el worker.
 // Corre después de regenerar la wiki (tools/build-wiki.mjs):
 //   node build-corpus.mjs
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 const WIKI = 'C:/Users/fbast/OneDrive/Freelance/Mazothecoach/Knowledge/wiki';
@@ -14,7 +14,10 @@ const qa = read('wiki-coaching-qa.md');
 // El resto se parte en secciones (## ...) y el worker elige las relevantes
 // por pregunta — así no se mandan 120KB de corpus en cada mensaje.
 const sections = [];
-for (const file of ['wiki-musculos.md', 'wiki-ejercicios.md', 'wiki-articulaciones.md', 'wiki-dolor-morfologia.md']) {
+// wiki-entrenamiento (RPE, tempo, progresión…) y wiki-videos (links de reels /
+// demostrativos) son opcionales: Mazo los nutre a mano y se seccionan igual.
+for (const file of ['wiki-musculos.md', 'wiki-ejercicios.md', 'wiki-articulaciones.md', 'wiki-dolor-morfologia.md', 'wiki-entrenamiento.md', 'wiki-videos.md']) {
+  if (!existsSync(join(WIKI, file))) continue;
   const raw = read(file);
   const docTitle = (raw.match(/^# (.+)$/m) || [, file])[1];
   const parts = raw.split(/^## /m).slice(1); // lo anterior al primer ## es el intro del doc
