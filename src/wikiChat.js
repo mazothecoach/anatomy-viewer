@@ -55,9 +55,28 @@ async function send(text) {
     }
     if (!res.ok) throw new Error(`http ${res.status}`);
     const data = await res.json();
+    // [[VER: Músculo1 | Músculo2]] → botón que resalta en el modelo 3D
+    const raw = data.reply || '…';
+    const verMatch = raw.match(/\[\[VER:\s*([^\]]+)\]\]/i);
+    const clean = verMatch ? raw.replace(verMatch[0], '').trim() : raw;
     thinking.className = 'wc-msg bot';
-    thinking.innerHTML = md(data.reply || '…');
-    history.push({ role: 'assistant', content: data.reply || '' });
+    thinking.innerHTML = md(clean);
+    if (verMatch && typeof window.__wikiShowMuscles === 'function') {
+      const names = verMatch[1].split('|').map(s => s.trim()).filter(Boolean);
+      const btn = document.createElement('button');
+      btn.className = 'wc-see';
+      btn.type = 'button';
+      btn.textContent = t('wiki_chat_see');
+      btn.onclick = () => {
+        const n = window.__wikiShowMuscles(names);
+        // en cel: cerrar el chat para que se vea el modelo con el músculo resaltado
+        if (n && window.matchMedia('(max-width: 760px)').matches) {
+          document.getElementById('wiki-chat').classList.add('hidden');
+        }
+      };
+      thinking.appendChild(btn);
+    }
+    history.push({ role: 'assistant', content: clean });
   } catch (err) {
     console.warn('[wiki-chat]', err);
     thinking.className = 'wc-msg bot';

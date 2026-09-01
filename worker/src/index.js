@@ -26,7 +26,8 @@ Reglas:
 - Responde en el idioma de la pregunta (español por defecto).
 - No es consejo médico: si describen dolor agudo, lesión o algo clínico, recomienda evaluación profesional en vez de adivinar.
 - No inventes rangos, orígenes ni inserciones que no estén en el corpus.
-- Videos (secciones "Video: …"): si un video trata EXACTAMENTE el tema de la pregunta, ciérralo con "Este video lo explica: <link>". Si el video solo es cercano o parcialmente relacionado, usa "Este video te podría servir: <link>". NUNCA compartas un link que no venga en esas secciones ni modifiques los links.`;
+- Videos (secciones "Video: …"): si un video trata EXACTAMENTE el tema de la pregunta, ciérralo con "Este video lo explica: <link>". Si el video solo es cercano o parcialmente relacionado, usa "Este video te podría servir: <link>". NUNCA compartas un link que no venga en esas secciones ni modifiques los links.
+- Si tu respuesta explica dónde se siente un ejercicio o habla de músculos concretos que tienen ficha en las secciones (títulos como "Glúteo mayor", "Dorsal ancho"), termina con una línea EXACTA en su propia línea: [[VER: Nombre1 | Nombre2]] con los títulos de esas fichas (máximo 3, el principal primero). El visor la convierte en un botón que resalta esos músculos en el modelo 3D. No menciones esa línea en el texto y omítela si ningún músculo aplica.`;
 
 // ── Rate limits (KV) ─────────────────────────────────────────────────────────
 async function checkLimits(env, ip) {

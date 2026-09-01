@@ -37,7 +37,7 @@ structures.forEach(s => (s.meshNames || []).forEach(mn => meshIndex.set(normaliz
 function resolveMesh(meshName) { return meshIndex.get(normalize(meshName)) || null; }
 
 // ── Búsqueda coloquial: "bíceps", "espalda", "gemelo" → grupo de músculos ─────
-const stripAccents = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+const stripAccents = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const normTerm = s => stripAccents((s || '').toLowerCase()).trim();
 const COLLOQUIAL = muscleGroups.map(g => ({
   ids: g.muscleIds,
@@ -108,6 +108,29 @@ function onRegion(region) {
   else viewer.clearIsolation();
   refreshList();
 }
+
+// ── Hook para el chat de la wiki ─────────────────────────────────────────────
+// El worker cierra respuestas de "dónde se siente X" con [[VER: Glúteo mayor | …]];
+// el widget lo convierte en un botón que llama esto: resalta esos músculos en el
+// modelo y abre su ficha (en móvil, a media altura para que el modelo se vea).
+const normStructName = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+window.__wikiShowMuscles = (names) => {
+  const wanted = (names || []).map(normStructName).filter(Boolean);
+  if (!wanted.length) return 0;
+  const matches = [];
+  for (const w of wanted) {
+    const hit = structures.find(s => {
+      const es = normStructName(s.name && s.name.es);
+      const en = normStructName(s.name && s.name.en);
+      return es === w || en === w || (w.length > 5 && (es.includes(w) || en.includes(w)));
+    });
+    if (hit && !matches.includes(hit)) matches.push(hit);
+  }
+  if (!matches.length) return 0;
+  onListPick(matches[0]);
+  if (matches.length > 1 && modelLoaded) viewer.highlightMany(matches.map(m => m.id));
+  return matches.length;
+};
 
 // ── Dolor / Físico ────────────────────────────────────────────────────────────
 function applyHighlightSet(item, field) {
@@ -303,7 +326,7 @@ function onPickJoint(joint) {
   }
   // Pose que corresponde a una opción de acoplamiento ("flexionada" → 90°), solo
   // si la etiqueta del acoplamiento habla de la articulación que sabemos posar.
-  const normKey = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const normKey = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   function optPose(coupling, opt) {
     if (!art.poseJoint || !coupling) return 0;
     if (normKey(tf(coupling.label)) !== art.poseJoint.label) return 0;

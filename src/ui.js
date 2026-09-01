@@ -364,8 +364,47 @@ export function renderExercisePicker(exercises, exGroups, onPick) {
 }
 
 // ── Drawer / bottom-sheet móvil ──────────────────────────────────────────────
-export function openInfoPanel() { if (isNarrow()) $('.right').classList.add('open'); }
-export function closeInfoPanel() { $('.right').classList.remove('open'); }
+// El sheet tiene 3 estados: half (default — el modelo se ve arriba), expanded
+// y peek (minimizado SIN deseleccionar: el highlight sigue en el modelo).
+export function openInfoPanel() {
+  if (!isNarrow()) return;
+  const r = $('.right');
+  r.classList.add('open');
+  r.classList.remove('peek'); // una selección nueva siempre vuelve a mostrarse
+}
+export function closeInfoPanel() { $('.right').classList.remove('open', 'peek', 'expanded'); }
+export function setSheetState(st) {
+  const r = $('.right');
+  r.classList.toggle('peek', st === 'peek');
+  r.classList.toggle('expanded', st === 'expanded');
+}
+function sheetState() {
+  const r = $('.right');
+  return r.classList.contains('peek') ? 'peek' : (r.classList.contains('expanded') ? 'expanded' : 'half');
+}
+function wireSheetGestures() {
+  const handle = $('#sheet-handle');
+  const sheet = $('.right');
+  let sy = null;
+  handle.addEventListener('pointerdown', e => { sy = e.clientY; handle.setPointerCapture(e.pointerId); });
+  const finish = e => {
+    if (sy === null) return;
+    const dy = e.clientY - sy;
+    sy = null;
+    const st = sheetState();
+    if (dy > 28) setSheetState(st === 'expanded' ? 'half' : 'peek');       // bajar un nivel (nunca cierra)
+    else if (dy < -28) setSheetState(st === 'peek' ? 'half' : 'expanded'); // subir un nivel
+    else setSheetState(st === 'peek' ? 'half' : 'peek');                   // tap: minimizar/restaurar
+  };
+  handle.addEventListener('pointerup', finish);
+  handle.addEventListener('pointercancel', () => { sy = null; });
+  // en peek, tocar el sheet (título visible) lo restaura
+  sheet.addEventListener('click', e => {
+    if (sheetState() === 'peek' && !e.target.closest('#sheet-close') && !e.target.closest('#sheet-handle')) {
+      setSheetState('half');
+    }
+  });
+}
 function openDrawer() { $('.left').classList.add('open'); $('#scrim').classList.add('show'); }
 function closeDrawer() { $('.left').classList.remove('open'); $('#scrim').classList.remove('show'); }
 
@@ -448,6 +487,7 @@ export function wireControls(opts) {
   };
   $('#scrim').onclick = () => { closeDrawer(); closeInfoPanel(); };
   $('#sheet-close').onclick = closeInfoPanel;
+  wireSheetGestures();
   $('#about-link').onclick = () => { renderAbout(); openInfoPanel(); };
 
   return { repaintViewBtn: paintViewBtn, setMode, getMode: () => currentMode, closeDrawer };
